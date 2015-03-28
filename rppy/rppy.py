@@ -51,7 +51,7 @@ def snell(vp1, vp2, vs1, vs2, theta1):
 
 def shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     """
-    Calculated the AVO response for a PP reflection based on the Shuey
+    Calculate the AVO response for a PP reflection based on the Shuey
     approximation to the Zoeppritz equations.
 
     :param vp1: Compressional velocity of upper layer.
@@ -75,3 +75,33 @@ def shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     Rpp = Rpz + B*np.sin(theta1)**2 + C*(np.tan(theta1)**2 - np.sin(theta1)**2)
 
     return(Rpp)
+
+
+def aki_richards(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
+    """
+    Calculate the AVO response for a PP reflection based on the Aki-Richards
+    approximation to the Zoeppritz equations.
+
+    :param vp1: Compressional velocity of upper layer.
+    :param vs1: Shear velocity of upper layer.
+    :param rho1: Density of upper layer.
+    :param vp2: Compressional velocity of lower layer.
+    :param vs2: Shear velocity of lower layer.
+    :param rho2: Density of lower layer.
+    :param theta1: Angle of incidence for P wave in upper layer.
+    """
+    theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
+    dvp = vp2 - vp1
+    dvs = vs2 - vs1
+    drho = rho2 - rho1
+    theta = (theta1 + theta2) / 2.
+    thetas = (thetas1 + thetas2) / 2.
+    rho = (rho1 + rho2) / 2.
+    vp = (vp1 + vp2) / 2.
+    vs = (vs1 + vs2) / 2.
+
+    Rpp = (0.5*(1.-4.*(p**2)*(vs**2))*drho/rho +
+           (1/(2.*np.cos(theta)))*(dvp/vp) - 4.*(p**2)*(vs**2)*dvs/vs)
+
+    return(Rpp)
+
