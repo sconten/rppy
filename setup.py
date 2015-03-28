@@ -16,6 +16,8 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     # TODO: put package requirements here
+    'numpy',
+    'matplotlib'
 ]
 
 test_requirements = [

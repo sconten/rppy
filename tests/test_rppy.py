@@ -9,9 +9,7 @@ Tests for `rppy` module.
 """
 
 import unittest
-
 from rppy import rppy
-
 
 class TestRppy(unittest.TestCase):
 
