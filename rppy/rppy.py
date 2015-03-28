@@ -100,8 +100,7 @@ def aki_richards(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     vp = (vp1 + vp2) / 2.
     vs = (vs1 + vs2) / 2.
 
-    Rpp = (0.5*(1.-4.*(p**2)*(vs**2))*drho/rho +
-           (1/(2.*np.cos(theta)))*(dvp/vp) - 4.*(p**2)*(vs**2)*dvs/vs)
+    Rpp = (0.5)*(1 - 4*p**2*vs**2)*(drho/rho) + (dvp/(2*np.cos(theta)**2*vp)) - (4*p**2*vs**2*dvs/vs)
 
     return(Rpp)
 
@@ -176,3 +175,95 @@ def bortfeld(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
            vs2**2)*(2. + np.log(rho2/rho1)/np.log(vs2/vs1)))
 
     return Rpp
+
+
+def hashin_shtrikman(K, u, f):
+    """
+    Compute the Hashin-Shtrikman upper and lower bounds for a
+    multi-constituent mixture.
+
+    :param K: Bulk moduli of the individual constituents.
+    :param u: Shear moduli of the individual constituents.
+    :param f: Volume fraction of the individual constituents.
+    """
+
+    def HSlambda(z):
+        L = np.average((1/(K + (4/3)*z)), weights=f)**-1 - (4/3)*z
+        return (L)
+
+    def HSgamma(z):
+        G = np.average((1/(u + z)), weights=f)**(-1) - z
+        return (G)
+
+    def HSzeta(K, u):
+        z = (u/6)*((9*K+8*u)/(K+2*u))
+        return (z)
+
+    K_hi = HSlambda(np.amax(u))
+    K_lo = HSlambda(np.amin(u))
+
+    u_hi = HSgamma(HSzeta(np.amax(K), np.amax(u)))
+    u_lo = HSgamma(HSzeta(np.amin(K), np.amin(u)))
+
+    return(K_hi, K_lo, u_hi, u_lo)
+
+
+def voight_reuss_hill(M, f):
+    # Compute Voight average of the input mineral given:
+    # moduli M and volume fractions f
+    v = np.sum(M*f)
+    r = 1/np.sum(f/M)
+    h = (v + r) / 2.
+    return(v, r, h)
+
+
+def main(*args):
+
+    K = np.array([36, 2.2])
+    u = np.array([31, 2.2])
+
+    fw = np.arange(0, 1, 0.01)
+
+    v = np.empty(np.shape(fw))
+    r = np.empty(np.shape(fw))
+    h = np.empty(np.shape(fw))
+    hsu = np.empty(np.shape(fw))
+    hsl = np.empty(np.shape(fw))
+
+    for x in np.arange(0, len(fw)):
+        v[x], r[x], h[x] = voight_reuss_hill(K, np.array([1-fw[x], fw[x]]))
+        returned = hashin_shtrikman(K, u, np.array([1-fw[x], fw[x]]))
+        hsu[x] = returned[0]
+        hsl[x] = returned[1]
+
+    plt.plot(fw, v, 'r')
+    plt.plot(fw, r, 'r')
+    plt.plot(fw, hsu, 'r')
+    plt.plot(fw, hsl, 'b')
+
+    plt.axis([0, 1, 0, 35])
+    plt.show()
+
+    thetas = np.arange(1, 47, 1)
+    Rppz = np.empty(np.shape(thetas))
+    Rppb = np.empty(np.shape(thetas))
+    Rppak = np.empty(np.shape(thetas))
+    Rpps = np.empty(np.shape(thetas))
+
+    plt.figure(2)
+    for n in range(np.size(thetas)):
+        dummy = zoeppritz(3000, 1500, 2000, 4000, 2000, 2200, np.radians(thetas[n]))
+        Rppz[n] = dummy[0]
+        Rppb[n] = bortfeld(3000, 1500, 2000, 4000, 2000, 2200, np.radians(thetas[n]))
+        Rppak[n] = aki_richards(3000, 1500, 2000, 4000, 2000, 2200, np.radians(thetas[n]))
+        Rpps[n] = shuey(3000, 1500, 2000, 4000, 2000, 2200, np.radians(thetas[n]))
+
+    plt.plot(thetas, Rppz, thetas, Rppb, thetas, Rppak, thetas, Rpps)
+    plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey'])
+    plt.xlim([20, 40])
+    plt.ylim([0.14, 0.22])
+    plt.show()
+
+
+if __name__ == "__main__":
+    main()
