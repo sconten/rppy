@@ -18,3 +18,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+def snell(vp1, vp2, vs1, vs2, theta1):
+    """
+    Calculates the angles of and refraction and reflection for an incident
+    P-wave in a two-layered system.
+
+    :param vp1: Compressional velocity of upper layer.
+    :param vp2: Compressional velocity of lower layer.
+    :param vs1: Shear velocity of upper layer.
+    :param vs2: Shear velocity of lower layer.
+    :param theta1: Angle of incidence of P-wave in upper layer
+    """
+    theta_crit = np.arcsin(vp1/vp2)
+    if theta1 >= theta_crit:
+        print('Given angle exceeds critical angle for system')
+    else:
+        p = np.sin(theta1)/vp1      # Ray parameter
+        theta2 = np.arcsin(p*vp2)   # P-wave refraction
+        thetas1 = np.arcsin(p*vs1)  # S-wave reflection
+        thetas2 = np.arcsin(p*vs2)  # S-wave refraction
+
+        return(theta2, thetas1, thetas2, p)
