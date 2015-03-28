@@ -9,8 +9,8 @@ rppy
         :target: https://pypi.python.org/pypi/rppy
 
 .. image:: https://readthedocs.org/projects/rppy/badge/?version=latest
-:target: https://readthedocs.org/projects/rppy/?badge=latest
-:alt: Documentation Status
+        :target: https://readthedocs.org/projects/rppy/?badge=latest
+        :alt: Documentation Status
 
 
 A geophysical library for Python
