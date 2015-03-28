@@ -21,7 +21,6 @@ requirements = [
 ]
 
 test_requirements = [
-   'tox',
    'pytest'
 ]
 

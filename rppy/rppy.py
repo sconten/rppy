@@ -19,11 +19,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def test(xin):
-    xout = 2*xin
-    return(xout)
-
-
 def snell(vp1, vp2, vs1, vs2, theta1):
     """
     Calculates the angles of and refraction and reflection for an incident
