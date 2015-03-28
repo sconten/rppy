@@ -19,6 +19,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def test(xin):
+    xout = 2*xin
+    return(xout)
+
+
 def snell(vp1, vp2, vs1, vs2, theta1):
     """
     Calculates the angles of and refraction and reflection for an incident
@@ -209,12 +214,175 @@ def hashin_shtrikman(K, u, f):
 
 
 def voight_reuss_hill(M, f):
-    # Compute Voight average of the input mineral given:
-    # moduli M and volume fractions f
+    """
+    Compute the Voight, Reuss, and Voight-Reuss-Hill averages for a
+    multi-constituent mixture.
+
+    :param M: Input moduli of the individual constituents.
+    :param f: Volume fractions of the individual constituents.
+    """
     v = np.sum(M*f)
     r = 1/np.sum(f/M)
     h = (v + r) / 2.
     return(v, r, h)
+
+
+def youngs(E, v, u, K, L, Vp, Vs, rho):
+    """
+    Compute the Young's modulus of a material given sufficient other moduli.
+
+    :param: v: Poisson's ratio (combine with u, K, or L)
+    :param u: Shear modulus (combine with v, K, or L)
+    :param K: Bulk modulus (combine with v, u, or L)
+    :param L: First Lame parameter (combine with v, u, or K)
+    :param Vp: Compressional velocity (combine with Vs and rho)
+    :param Vs: Shear velocity (combine with Vp and rho)
+    :param rho: Density (combine with Vp and Vs)
+    """
+    if v and u:
+        E = 2*u*(1+v)
+    elif v and K:
+        E = 3*K*(1-2*v)
+    elif v and L:
+        E = (L*(1+v)*(1-2*v))/(v)
+    elif u and K:
+        E = (9*K*u)/(3*K+u)
+    elif u and L:
+        E = u*(3*L+2*u)/(L+u)
+    elif K and L:
+        E = 9*K*(K-L)/(3*K-L)
+    elif Vp and Vs and rho:
+        E = rho*Vs**2*(3*Vp**2 - 4*Vs**2)/(Vp**2 - Vs**2)
+    else:
+        E = None
+    return(E)
+
+
+def poissons(E, v, u, K, L, Vp, Vs, rho):
+    """
+    Compute the Poisson's modulus of a material given sufficient other moduli.
+
+    :param: E: Young's ratio (combine with u, K, or L)
+    :param u: Shear modulus (combine with E, K, or L)
+    :param K: Bulk modulus (combine with E, u, or L)
+    :param L: First Lame parameter (combine with E, u, or K)
+    :param Vp: Compressional velocity (combine with Vs and rho)
+    :param Vs: Shear velocity (combine with Vp and rho)
+    :param rho: Density (combine with Vp and Vs)
+    """
+    if E and u:
+        v = (E-2*u)/(2*u)
+    elif E and K:
+        v = (3*K - E)/(6*K)
+    elif E and L:
+        R = np.sqrt(E**2 + 9*L**2 + 2*E*L)
+        v = (2*L)/(E+L+R)
+    elif u and K:
+        v = (3*K-2*u)/(6*K + 2*u)
+    elif u and L:
+        v = L/(2*(L+u))
+    elif K and L:
+        v = L/(3*K-L)
+    elif Vp and Vs and rho:
+        v = (Vp**2 - 2*Vs**2)/(2*(Vp**2-Vs**2))
+    else:
+        v = None
+    return(v)
+
+
+def shear(E, v, u, K, L, Vp, Vs, rho):
+    """
+    Compute the shear modulus of a material given sufficient other moduli.
+
+    :param: E: Young's modulus (combine with v, K, or L)
+    :param v: Poisson's ratio (combine with E, K, or L)
+    :param K: Bulk modulus (combine with E, v, or L)
+    :param L: First Lame parameter (combine with E, v, or K)
+    :param Vp: Compressional velocity (combine with Vs and rho)
+    :param Vs: Shear velocity (combine with Vp and rho)
+    :param rho: Density (combine with Vp and Vs)
+    """
+    if E and v:
+        u = E/(2*(1+v))
+    elif E and K:
+        u = 3*K*E/(9*K-E)
+    elif E and L:
+        R = np.sqrt(E**2 + 9*L**2 + 2*E*L)
+        u = (E-3*L+R)/4
+    elif v and K:
+        u = 3*K*(1-2*v)/(2*(1+v))
+    elif v and L:
+        u = L*(1-2*v)/(2*v)
+    elif K and L:
+        u = (3/2)*(K-L)
+    elif Vp and Vs and rho:
+        u = rho*Vs**2
+    else:
+        u = None
+    return(u)
+
+
+def bulk(E, v, u, K, L, Vp, Vs, rho):
+    """
+    Compute the bulk modulus of a material given sufficient other moduli.
+
+    :param: E: Young's modulus (combine with v, u, or L)
+    :param v: Poisson's ratio (combine with E, u, or L)
+    :param u: shear modulus (combine with E, v, or L)
+    :param L: First Lame parameter (combine with E, v, or u)
+    :param Vp: Compressional velocity (combine with Vs and rho)
+    :param Vs: Shear velocity (combine with Vp and rho)
+    :param rho: Density (combine with Vp and Vs)
+    """
+    if E and v:
+        K = E/(3*(1-2*v))
+    elif E and u:
+        K = E*u/(3*(3*u-E))
+    elif E and L:
+        R = np.sqrt(E**2 + 9*L**2 + 2*E*L)
+        K = (E+3*L+R)/6
+    elif v and u:
+        K = 2*u*(1+v)/(3*(1-2*v))
+    elif v and L:
+        K = L*(1+v)/(3*v)
+    elif u and L:
+        K = (3*L+2*u)/3
+    elif Vp and Vs and rho:
+        K = rho*(Vp**2 - 4*Vs**2/3)
+    else:
+        K = None
+    return(K)
+
+
+def lame(E, v, u, K, L, Vp, Vs, rho):
+    """
+    Compute the first Lame's parameter of a material given sufficient other moduli.
+
+    :param: E: Young's modulus (combine with v, u, or K)
+    :param v: Poisson's ratio (combine with E, u, or K)
+    :param u: shear modulus (combine with E, v, or K)
+    :param K: Bulk modulus (combine with E, v, or u)
+    :param Vp: Compressional velocity (combine with Vs and rho)
+    :param Vs: Shear velocity (combine with Vp and rho)
+    :param rho: Density (combine with Vp and Vs)
+    """
+    if E and v:
+        L = E*v/((1+v)*(1-2*v))
+    elif E and u:
+        L = u*(E - 2*u)/(3*u - E)
+    elif E and K:
+        L = 3*K*(3*K-E)/(9*K-E)
+    elif v and u:
+        L = 2*u*v/(1-2*v)
+    elif v and K:
+        L = 3*K*v/(1+v)
+    elif u and K:
+        L = (3*K-2*u)/3
+    elif Vp and Vs and rho:
+        L = rho*(Vp**2 - 2*Vs**2)
+    else:
+        L = None
+    return(L)
 
 
 def main(*args):

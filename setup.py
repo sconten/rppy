@@ -21,7 +21,8 @@ requirements = [
 ]
 
 test_requirements = [
-    # TODO: put package test requirements here
+   'tox',
+   'pytest'
 ]
 
 setup(
