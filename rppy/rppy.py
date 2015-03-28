@@ -105,3 +105,52 @@ def aki_richards(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
 
     return(Rpp)
 
+
+def zoeppritz(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
+    """
+    Calculate the AVO response for a PP reflection based on the exact matrix
+    formulation of the Zoeppritz equations.
+
+    :param vp1: Compressional velocity of upper layer.
+    :param vs1: Shear velocity of upper layer.
+    :param rho1: Density of upper layer.
+    :param vp2: Compressional velocity of lower layer.
+    :param vs2: Shear velocity of lower layer.
+    :param rho2: Density of lower layer.
+    :param theta1: Angle of incidence for P wave in upper layer.
+    """
+    # Need reflection and refraction angled for Zoeppritz
+    theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
+
+    M = np.array([
+        [-np.sin(theta1), -np.cos(thetas1), np.sin(theta2), np.cos(thetas2)],
+        [np.cos(theta1), -np.sin(thetas1), np.cos(theta2), -np.sin(thetas2)],
+        [2.*rho1*vs1*np.sin(thetas1)*np.cos(theta1),
+         rho2*vs1*(1.-2.*np.sin(thetas2)**2),
+         2.*rho2*vs2*np.sin(thetas2)*np.cos(theta2),
+         rho2*vs2*(1.-2.*np.sin(thetas2)**2)],
+        [-rho1*vp1*(1.-2.*np.sin(thetas1)**2),
+         rho1*vs1*np.sin(2.*thetas1),
+         rho2*vp2*(1.-2.*np.sin(thetas2)**2),
+         -rho2*vs2*np.sin(2.*thetas2)]])
+
+    N = np.array([
+        [np.sin(theta1), np.cos(thetas1), -np.sin(theta2), -np.cos(thetas2)],
+        [np.cos(theta1), -np.sin(thetas1), np.cos(theta2), -np.sin(thetas2)],
+        [2.*rho1*vs1*np.sin(thetas1)*np.cos(theta1),
+         rho2*vs1*(1.-2.*np.sin(thetas2)**2),
+         2.*rho2*vs2*np.sin(thetas2)*np.cos(theta2),
+         rho2*vs2*(1.-2.*np.sin(thetas2)**2)],
+        [rho1*vp1*(1.-2.*np.sin(thetas1)**2),
+         -rho1*vs1*np.sin(2.*thetas1),
+         -rho2*vp2*(1.-2.*np.sin(thetas2)**2),
+         rho2*vs2*np.sin(2.*thetas2)]])
+
+    Z = np.dot(np.linalg.inv(M), N)
+
+    Rpp = Z[0][0]
+    Rps = Z[1][0]
+    Tpp = Z[2][0]
+    Tps = Z[3][0]
+
+    return(Rpp, Rps, Tpp, Tps)
