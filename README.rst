@@ -11,7 +11,8 @@ rppy
 .. image:: https://readthedocs.org/projects/rppy/badge/?version=latest
         :target: https://readthedocs.org/projects/rppy/?badge=latest
         :alt: Documentation Status
-
+.. image:: https://coveralls.io/repos/shear/rppy/badge.svg?branch=develop
+        :target: https://coveralls.io/r/shear/rppy?branch=develop
 
 A geophysical library for Python
 
