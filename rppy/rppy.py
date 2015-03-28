@@ -19,6 +19,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def test():
+    out=5
+    return(out)
+
 def snell(vp1, vp2, vs1, vs2, theta1):
     """
     Calculates the angles of and refraction and reflection for an incident
