@@ -154,3 +154,25 @@ def zoeppritz(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     Tps = Z[3][0]
 
     return(Rpp, Rps, Tpp, Tps)
+
+
+def bortfeld(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
+    """
+    Calculate the AVO response for a PP reflection based on the Bortfeld
+    approximation to the Zoeppritz equations.
+
+    :param vp1: Compressional velocity of upper layer.
+    :param vs1: Shear velocity of upper layer.
+    :param rho1: Density of upper layer.
+    :param vp2: Compressional velocity of lower layer.
+    :param vs2: Shear velocity of lower layer.
+    :param rho2: Density of lower layer.
+    :param theta1: Angle of incidence for P wave in upper layer.
+    """
+    theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
+
+    Rpp = ((1./2.)*np.log((vp2*rho2*np.cos(theta1)) /
+           (vp1*rho1*np.cos(theta2))) + (np.sin(theta1)/vp1)**2*(vs1**2 -
+           vs2**2)*(2. + np.log(rho2/rho1)/np.log(vs2/vs1)))
+
+    return Rpp
