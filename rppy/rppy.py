@@ -19,10 +19,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def test():
-    out=5
-    return(out)
-
 def snell(vp1, vp2, vs1, vs2, theta1):
     """
     Calculates the angles of and refraction and reflection for an incident
@@ -66,17 +62,20 @@ def shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     :param rho2: Density of lower layer.
     :param theta1: Angle of incidence for P wave in upper layer.
     """
+    theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
     dvp = vp2 - vp1
     drho = rho2 - rho1
+    dvs = vs2 - vs1
     rho = (rho1 + rho2) / 2.
     vs = (vs1 + vs2) / 2.
     vp = (vp1 + vp2) / 2.
-    dvs = vs2 - vs1
-    Rpz = (1. / 2.)*((dvp / vp) + (drho / rho))
-    B = (dvp/(2*vp) - (2*vs**2/vp**2)*(2*dvs/vs + drho/rho))
-    C = dvp/(2*vp)
+    theta = (theta1 + theta2)/2
 
-    Rpp = Rpz + B*np.sin(theta1)**2 + C*(np.tan(theta1)**2 - np.sin(theta1)**2)
+    R0 = 0.5*(dvp/vp + drho/rho)
+    G = 0.5*dvp/vp - 2*vs**2/vp**2*(drho/rho + 2*dvs/vs)
+    F = 0.5*dvp/vp
+
+    Rpp = R0 + G*np.sin(theta)**2 + F*(np.tan(theta)**2 - np.sin(theta)**2)
 
     return(Rpp)
 
