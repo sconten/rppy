@@ -1,5 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #    rppy - a geophysical library for Python
-#    Copyright (C) 2015  Sean Matthew Contenti
+#    Copyright (C) 2015  Sean M. Contenti
 #
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,6 +19,89 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+
+def batzle_wang(P, T, fluid, S=None, G=None, api=None, Rg=None):
+    """
+    Calculate the elastic properties of reservoir fluids using the
+    Batzle & Wang [1992] equations.
+
+    :param P: Pressure (MPa)
+    :param T: Temperature {deg C)
+    :param fluid: Fluid type to calculate: brine, gas, or oil
+    :param S: Salinity (brine only, in ppm)
+    :param G: Gas gravity (gas mode only, ratio of gas density to air density
+    at 15.6C and atmospheric pressure)
+    :param api: American Petroleum Insitute (API) oi gravity
+    :param Rg: Gas-oil ratio
+    """
+
+    if fluid == 'brine':
+        w = np.array([
+                      [1402.85,   1.524,     3.437e-3,  -1.197e-5],
+                      [4.871,    -0.111,     1.739e-4,  -1.628e-6],
+                      [-0.04783,   2.747e-4, -2.135e-6,   1.237e-8],
+                      [1.487e-4, -6.503e-7, -1.455e-8,   1.327e-10],
+                      [-2.197e-7,  7.987e-10, 5.230e-11, -4.614e-13],
+        ])
+
+        rhow = 1 + 10**-6*(-80*T - 3.3*T**2 + 0.00175*T**3 +
+                           89*P - 2*T*P + 0.016*T**2*P - 1.3e-5*T**3*P -
+                           0.333*P**2 - 0.002*T*P**2)
+
+        rhob = rhow + S*(0.668 + 0.44*S + 10**-6*(300*P - 2400*P*S +
+                         T*(80 + 3*T - 3300*S - 13*P + 47*P*S)))
+
+        Vw = 0
+        for i in range(4):
+            for j in range(3):
+                Vw = Vw + w[i][j]*T**i*P**j
+
+        Vb = (Vw + S*(1170 - 9.8*T + 0.055*T**2 - 8.5e-5*T**3 + 2.6*P -
+              0.0029*T*P - 0.0476*P**2) + S**(3/2)*(780 - 10*P + 0.16*P**2) -
+              1820*S**2)
+
+        out = {'rho': rhob, 'Vp': Vb}
+
+    elif fluid == 'oil':
+        rho0 = 141.5 / (api + 131.5)
+        B0 = 0.972 + 0.00038*(2.4*Rg*(G/rho0)**0.5 + T + 17.8)**(1.175)
+
+        rho_r = (rho0/B0)*(1 + 0.001*Rg)**-1    # pseudo-density of oil
+        rhog = (rho0 + 0.0012*G*Rg)/B0          # density of oil with gas
+        rhop = (rhog + (0.00277*P -             # correct for pressure
+                1.71e-7*P**3)*(rhog - 1.15)**2 + 3.49e-4*P)
+
+        rho = rhop / (0.972 + 3.81e-4*(T + 17.78)**1.175)  # correct for temp
+        Vp = 2096*(rho_r / (2.6 - rho_r))**0.5 - 3.7*T + 4.64*P
+
+        out = {'rho': rho, 'Vp': Vp}
+
+    elif fluid == 'gas':
+        Ta = T + 273.15                 # absolute temperature
+        Pr = P / (4.892 - 0.4048*G)     # pseudo-pressure
+        Tr = Ta / (94.72 + 170.75*G)    # pseudo-temperature
+
+        R = 8.31441
+        d = np.exp(-(0.45 + 8*(0.56 - 1/Tr)**2)*Pr**1.2/Tr)
+        c = 0.109*(3.85 - Tr)**2
+        b = 0.642*Tr - 0.007*Tr**4 - 0.52
+        a = 0.03 + 0.00527*(3.5 - Tr)**3
+        m = 1.2*(-(0.45 + 8*(0.56 - 1/Tr)**2)*Pr**0.2/Tr)
+        y = (0.85 + 5.6/(Pr + 2) + 27.1/(Pr + 3.5)**2 -
+             8.7*np.exp(-0.65*(Pr + 1)))
+        f = c*d*m + a
+        E = c*d
+        Z = a*Pr + b + E
+
+        rhog = (28.8*G*P) / (Z*R*Ta)
+        Kg = P*y / (1 - Pr*f/Z)
+
+        out = {'rho': rhog, 'K': Kg}
+    else:
+        out = None
+
+    return(out)
 
 
 def snell(vp1, vp2, vs1, vs2, theta1):
@@ -103,7 +188,8 @@ def aki_richards(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     vp = (vp1 + vp2) / 2.
     vs = (vs1 + vs2) / 2.
 
-    Rpp = (0.5)*(1 - 4*p**2*vs**2)*(drho/rho) + (dvp/(2*np.cos(theta)**2*vp)) - (4*p**2*vs**2*dvs/vs)
+    Rpp = ((0.5)*(1 - 4*p**2*vs**2)*(drho/rho) +
+           (dvp/(2*np.cos(theta)**2*vp)) - (4*p**2*vs**2*dvs/vs))
 
     return(Rpp)
 
@@ -225,7 +311,7 @@ def voight_reuss_hill(M, f):
     return(v, r, h)
 
 
-def youngs(E, v, u, K, L, Vp, Vs, rho):
+def youngs(v=None, u=None, K=None, L=None, Vp=None, Vs=None, rho=None):
     """
     Compute the Young's modulus of a material given sufficient other moduli.
 
@@ -256,7 +342,7 @@ def youngs(E, v, u, K, L, Vp, Vs, rho):
     return(E)
 
 
-def poissons(E, v, u, K, L, Vp, Vs, rho):
+def poissons(E=None, u=None, K=None, L=None, Vp=None, Vs=None, rho=None):
     """
     Compute the Poisson's modulus of a material given sufficient other moduli.
 
@@ -288,7 +374,7 @@ def poissons(E, v, u, K, L, Vp, Vs, rho):
     return(v)
 
 
-def shear(E, v, u, K, L, Vp, Vs, rho):
+def shear(E=None, v=None, K=None, L=None, Vp=None, Vs=None, rho=None):
     """
     Compute the shear modulus of a material given sufficient other moduli.
 
@@ -320,7 +406,7 @@ def shear(E, v, u, K, L, Vp, Vs, rho):
     return(u)
 
 
-def bulk(E, v, u, K, L, Vp, Vs, rho):
+def bulk(E=None, v=None, u=None, L=None, Vp=None, Vs=None, rho=None):
     """
     Compute the bulk modulus of a material given sufficient other moduli.
 
@@ -352,7 +438,7 @@ def bulk(E, v, u, K, L, Vp, Vs, rho):
     return(K)
 
 
-def lame(E, v, u, K, L, Vp, Vs, rho):
+def lame(E=None, v=None, u=None, K=None, Vp=None, Vs=None, rho=None):
     """
     Compute the first Lame's parameter of a material given sufficient other moduli.
 
