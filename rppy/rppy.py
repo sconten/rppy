@@ -117,7 +117,7 @@ def snell(vp1, vp2, vs1, vs2, theta1):
     """
     theta_crit_1 = np.arcsin(vp1/vp2)
     theta_crit_2 = np.arcsin(vp1/vs2)
-    p = np.sin(theta1)/vp1      # Ray parameter
+    p = np.sin(theta1)/vp1          # Ray parameter
     if theta1 >= theta_crit_1:
         theta2 = None
         thetas1 = np.arcsin(p*vs1)  # S-wave reflection
@@ -125,7 +125,7 @@ def snell(vp1, vp2, vs1, vs2, theta1):
     elif theta1 >= theta_crit_2:
         theta2 = None
         thetas1 = np.arcsin(p*vs1)  # S-wave reflection
-        thetas2 = None  # S-wave refraction
+        thetas2 = None              # S-wave refraction
     else:
         theta2 = np.arcsin(p*vp2)   # P-wave refraction
         thetas1 = np.arcsin(p*vs1)  # S-wave reflection
@@ -183,13 +183,12 @@ def aki_richards(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     dvs = vs2 - vs1
     drho = rho2 - rho1
     theta = (theta1 + theta2) / 2.
-    thetas = (thetas1 + thetas2) / 2.
     rho = (rho1 + rho2) / 2.
     vp = (vp1 + vp2) / 2.
     vs = (vs1 + vs2) / 2.
 
-    Rpp = ((0.5)*(1 - 4*p**2*vs**2)*(drho/rho) +
-           (dvp/(2*np.cos(theta)**2*vp)) - (4*p**2*vs**2*dvs/vs))
+    Rpp = (0.5 * (1 - 4 * p**2 * vs**2) * (drho / rho) +
+           (dvp / (2 * np.cos(theta)**2 * vp)) - (4 * p**2 * vs**2 * dvs / vs))
 
     return(Rpp)
 
@@ -259,9 +258,9 @@ def bortfeld(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     """
     theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
 
-    Rpp = ((1./2.)*np.log((vp2*rho2*np.cos(theta1)) /
-           (vp1*rho1*np.cos(theta2))) + (np.sin(theta1)/vp1)**2*(vs1**2 -
-           vs2**2)*(2. + np.log(rho2/rho1)/np.log(vs2/vs1)))
+    Rpp = (0.5 * np.log((vp2 * rho2 * np.cos(theta1)) /
+           (vp1 * rho1 * np.cos(theta2))) + (np.sin(theta1)/vp1)**2 * (vs1**2 -
+           vs2**2) * (2 + np.log(rho2 / rho1) / np.log(vs2 / vs1)))
 
     return Rpp
 
@@ -336,7 +335,7 @@ def youngs(v=None, u=None, K=None, L=None, Vp=None, Vs=None, rho=None):
     elif K and L:
         E = 9*K*(K-L)/(3*K-L)
     elif Vp and Vs and rho:
-        E = rho*Vs**2*(3*Vp**2 - 4*Vs**2)/(Vp**2 - Vs**2)
+        E = rho*Vs**2*(3*Vp**2-4*Vs**2)/(Vp**2-Vs**2)
     else:
         E = None
     return(E)
