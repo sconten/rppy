@@ -21,6 +21,68 @@ from rppy import rppy
 import numpy as np
 
 
+def test_batzle_wang_brine():
+    err = 0.0001
+
+    # Test low-pressure, low-temperature brine properties
+    T = 25
+    P = 5
+    S = 30000
+    expected_rho = 1.0186679
+    expected_Vp = 1535.572
+
+    gas = rppy.batzle_wang(P, T, 'brine', S=S)
+
+    assert np.abs(gas['rho'] - expected_rho) < err
+    assert np.abs(gas['Vp'] - expected_Vp) < err
+
+
+def test_batzle_wang_oil():
+    err = 0.0001
+
+    # Test low-pressure, low-temperature oil properties
+    T = 25
+    P = 5
+    G = 0.6
+    api = 21
+    Rg = 7
+    expected_rho = 0.9211315
+    expected_Vp = 1469.1498
+
+    gas = rppy.batzle_wang(P, T, 'oil', G=G, api=api, Rg=Rg)
+
+    assert np.abs(gas['rho'] - expected_rho) < err
+    assert np.abs(gas['Vp'] - expected_Vp) < err
+
+
+def test_batzle_wang_gas():
+    err = 0.0001
+
+    # Test low pressure, low temperature gas properties
+    T = 15
+    P = 3
+    G = 0.6
+    expected_rho = 0.02332698
+    expected_K = 4.264937
+
+    gas = rppy.batzle_wang(P, T, 'gas', G=G)
+
+    assert np.abs(gas['rho'] - expected_rho) < err
+    assert np.abs(gas['K'] - expected_K) < err
+
+    # Test high-pressure, high-temperature gas properties
+    T = 180
+    P = 13
+    G = 0.6
+    expected_rho = 0.060788613
+    expected_K = 25.39253
+
+    gas = rppy.batzle_wang(P, T, 'gas', G=G)
+
+    assert np.abs(gas['rho'] - expected_rho) < err
+    assert np.abs(gas['K'] - expected_K) < err
+
+
 def test_snell():
     err = 0.01
     vp1 = 2500
