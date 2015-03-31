@@ -22,7 +22,7 @@ import numpy as np
 
 
 def test_batzle_wang_brine():
-    err = 0.0001
+    err = 0.005     # allow 0.5% deviation from CREWES calculator result
 
     # Test low-pressure, low-temperature brine properties
     T = 25
@@ -31,14 +31,14 @@ def test_batzle_wang_brine():
     expected_rho = 1.0186679
     expected_Vp = 1535.572
 
-    gas = rppy.batzle_wang(P, T, 'brine', S=S)
+    fluid = rppy.batzle_wang(P, T, 'brine', S=S)
 
-    assert np.abs(gas['rho'] - expected_rho) < err
-    assert np.abs(gas['Vp'] - expected_Vp) < err
+    assert np.abs(fluid['rho'] - expected_rho)/expected_rho < err
+    assert np.abs(fluid['Vp'] - expected_Vp)/expected_Vp < err
 
 
 def test_batzle_wang_oil():
-    err = 0.0001
+    err = 0.005
 
     # Test low-pressure, low-temperature oil properties
     T = 25
@@ -49,14 +49,14 @@ def test_batzle_wang_oil():
     expected_rho = 0.9211315
     expected_Vp = 1469.1498
 
-    gas = rppy.batzle_wang(P, T, 'oil', G=G, api=api, Rg=Rg)
+    fluid = rppy.batzle_wang(P, T, 'oil', G=G, api=api, Rg=Rg)
 
-    assert np.abs(gas['rho'] - expected_rho) < err
-    assert np.abs(gas['Vp'] - expected_Vp) < err
+    assert np.abs(fluid['rho'] - expected_rho)/expected_rho < err
+    assert np.abs(fluid['Vp'] - expected_Vp)/expected_Vp < err
 
 
 def test_batzle_wang_gas():
-    err = 0.0001
+    err = 0.005
 
     # Test low pressure, low temperature gas properties
     T = 15
@@ -65,10 +65,10 @@ def test_batzle_wang_gas():
     expected_rho = 0.02332698
     expected_K = 4.264937
 
-    gas = rppy.batzle_wang(P, T, 'gas', G=G)
+    fluid = rppy.batzle_wang(P, T, 'gas', G=G)
 
-    assert np.abs(gas['rho'] - expected_rho) < err
-    assert np.abs(gas['K'] - expected_K) < err
+    assert np.abs(fluid['rho'] - expected_rho)/expected_rho < err
+    assert np.abs(fluid['K'] - expected_K)/expected_K < err
 
     # Test high-pressure, high-temperature gas properties
     T = 180
@@ -77,10 +77,10 @@ def test_batzle_wang_gas():
     expected_rho = 0.060788613
     expected_K = 25.39253
 
-    gas = rppy.batzle_wang(P, T, 'gas', G=G)
+    fluid = rppy.batzle_wang(P, T, 'gas', G=G)
 
-    assert np.abs(gas['rho'] - expected_rho) < err
-    assert np.abs(gas['K'] - expected_K) < err
+    assert np.abs(fluid['rho'] - expected_rho)/expected_rho < err
+    assert np.abs(fluid['K'] - expected_K)/expected_K < err
 
 
 def test_snell():
@@ -103,7 +103,7 @@ def test_snell():
 
 
 def test_youngs():
-    err = 0.01
+    err = 0.005
     E = 70
     v = 0.3
     u = 26.92
@@ -111,16 +111,16 @@ def test_youngs():
     L = 40.38
     expected = E
 
-    assert np.abs(rppy.youngs(v=v, u=u) - expected) < err
-    assert np.abs(rppy.youngs(v=v, K=K) - expected) < err
-    assert np.abs(rppy.youngs(v=v, L=L) - expected) < err
-    assert np.abs(rppy.youngs(u=u, K=K) - expected) < err
-    assert np.abs(rppy.youngs(u=u, L=L) - expected) < err
-    assert np.abs(rppy.youngs(K=K, L=L) - expected) < err
+    assert np.abs(rppy.youngs(v=v, u=u) - expected)/expected < err
+    assert np.abs(rppy.youngs(v=v, K=K) - expected)/expected < err
+    assert np.abs(rppy.youngs(v=v, L=L) - expected)/expected < err
+    assert np.abs(rppy.youngs(u=u, K=K) - expected)/expected < err
+    assert np.abs(rppy.youngs(u=u, L=L) - expected)/expected < err
+    assert np.abs(rppy.youngs(K=K, L=L) - expected)/expected < err
 
 
 def test_poissons():
-    err = 0.01
+    err = 0.005
     E = 70
     v = 0.3
     u = 26.92
@@ -128,16 +128,16 @@ def test_poissons():
     L = 40.38
     expected = v
 
-    assert np.abs(rppy.poissons(E=E, u=u) - expected) < err
-    assert np.abs(rppy.poissons(E=E, K=K) - expected) < err
-    assert np.abs(rppy.poissons(E=E, L=L) - expected) < err
-    assert np.abs(rppy.poissons(u=u, K=K) - expected) < err
-    assert np.abs(rppy.poissons(u=u, L=L) - expected) < err
-    assert np.abs(rppy.poissons(K=K, L=L) - expected) < err
+    assert np.abs(rppy.poissons(E=E, u=u) - expected)/expected < err
+    assert np.abs(rppy.poissons(E=E, K=K) - expected)/expected < err
+    assert np.abs(rppy.poissons(E=E, L=L) - expected)/expected < err
+    assert np.abs(rppy.poissons(u=u, K=K) - expected)/expected < err
+    assert np.abs(rppy.poissons(u=u, L=L) - expected)/expected < err
+    assert np.abs(rppy.poissons(K=K, L=L) - expected)/expected < err
 
 
 def test_shear():
-    err = 0.01
+    err = 0.005
     E = 70
     v = 0.3
     u = 26.92
@@ -145,16 +145,16 @@ def test_shear():
     L = 40.38
     expected = u
 
-    assert np.abs(rppy.shear(E=E, v=v) - expected) < err
-    assert np.abs(rppy.shear(E=E, K=K) - expected) < err
-    assert np.abs(rppy.shear(E=E, L=L) - expected) < err
-    assert np.abs(rppy.shear(v=v, K=K) - expected) < err
-    assert np.abs(rppy.shear(v=v, L=L) - expected) < err
-    assert np.abs(rppy.shear(K=K, L=L) - expected) < err
+    assert np.abs(rppy.shear(E=E, v=v) - expected)/expected < err
+    assert np.abs(rppy.shear(E=E, K=K) - expected)/expected < err
+    assert np.abs(rppy.shear(E=E, L=L) - expected)/expected < err
+    assert np.abs(rppy.shear(v=v, K=K) - expected)/expected < err
+    assert np.abs(rppy.shear(v=v, L=L) - expected)/expected < err
+    assert np.abs(rppy.shear(K=K, L=L) - expected)/expected < err
 
 
 def test_bulk():
-    err = 0.01
+    err = 0.005
     E = 70
     v = 0.3
     u = 26.92
@@ -162,16 +162,16 @@ def test_bulk():
     L = 40.38
     expected = K
 
-    assert np.abs(rppy.bulk(E=E, v=v) - expected) < err
-    assert np.abs(rppy.bulk(E=E, u=u) - expected) < err
-    assert np.abs(rppy.bulk(E=E, L=L) - expected) < err
-    assert np.abs(rppy.bulk(v=v, u=u) - expected) < err
-    assert np.abs(rppy.bulk(v=v, L=L) - expected) < err
-    assert np.abs(rppy.bulk(u=u, L=L) - expected) < err
+    assert np.abs(rppy.bulk(E=E, v=v) - expected)/expected < err
+    assert np.abs(rppy.bulk(E=E, u=u) - expected)/expected < err
+    assert np.abs(rppy.bulk(E=E, L=L) - expected)/expected < err
+    assert np.abs(rppy.bulk(v=v, u=u) - expected)/expected < err
+    assert np.abs(rppy.bulk(v=v, L=L) - expected)/expected < err
+    assert np.abs(rppy.bulk(u=u, L=L) - expected)/expected < err
 
 
 def test_lame():
-    err = 0.01
+    err = 0.005
     E = 70
     v = 0.3
     u = 26.92
@@ -179,10 +179,10 @@ def test_lame():
     L = 40.38
     expected = L
 
-    assert np.abs(rppy.lame(E=E, v=v) - expected) < err
-    assert np.abs(rppy.lame(E=E, u=u) - expected) < err
-    assert np.abs(rppy.lame(E=E, K=K) - expected) < err
-    assert np.abs(rppy.lame(v=v, u=u) - expected) < err
-    assert np.abs(rppy.lame(v=v, K=K) - expected) < err
-    assert np.abs(rppy.lame(u=u, K=K) - expected) < err
+    assert np.abs(rppy.lame(E=E, v=v) - expected)/expected < err
+    assert np.abs(rppy.lame(E=E, u=u) - expected)/expected < err
+    assert np.abs(rppy.lame(E=E, K=K) - expected)/expected < err
+    assert np.abs(rppy.lame(v=v, u=u) - expected)/expected < err
+    assert np.abs(rppy.lame(v=v, K=K) - expected)/expected < err
+    assert np.abs(rppy.lame(u=u, K=K) - expected)/expected < err
 
