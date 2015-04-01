@@ -21,6 +21,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def tuning_wedge(Rpp, f0, t):
+    """
+    Calculate the amplitude at the interface between the top two layers of a
+    three layer system. (Intended as an aid to calculate the hypothetical
+    thin-bed or tuning-wedge response)
+
+    :param Rpp: Reflection coefficient between the top two layers
+    :param f0: Dominant frequency of the Ricker source wavelet
+    :param t: Time thickness of layer 2
+    """
+    A = Rpp*(1 - (1 - 2*np.pi**2*f0**2*(t/1000)**2)*np.exp(-np.pi**2*(t/1000)**2*f0**2))
+
+    return A
+
+
 def batzle_wang(P, T, fluid, S=None, G=None, api=None, Rg=None):
     """
     Calculate the elastic properties of reservoir fluids using the
@@ -515,6 +530,13 @@ def main(*args):
     plt.xlim([20, 40])
     plt.ylim([0.14, 0.22])
     plt.show()
+
+    t = np.arange(0, 15, 0.1)
+
+    A = tuning_wedge(1, 90, t)
+
+    plt.figure(3)
+    plt.plot(A)
 
 
 if __name__ == "__main__":

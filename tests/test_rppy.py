@@ -22,7 +22,7 @@ import numpy as np
 
 
 def test_batzle_wang_brine():
-    err = 0.005     # allow 0.5% deviation from CREWES calculator result
+    err = 0.005
 
     # Test low-pressure, low-temperature brine properties
     T = 25
