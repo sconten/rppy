@@ -1,3 +1,5 @@
 wheel==0.23.0
 numpy>=1.9.0
 matplotlib>=1.4.3
+coverage>= 3.7.1
+python-coveralls
