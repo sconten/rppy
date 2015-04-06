@@ -21,6 +21,57 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=None):
+    """
+    Calculate the effective bulk and shear moduli of a background medium after
+    introducing inclusions.
+
+    Note: Function is not currently set up to natively handle a multiphase
+    material with more than one inclusion type.
+
+    :param Km: Bulk modulus of the background medium.
+    :param um: Shear modulus of the background medium.
+    :param Ki: Bulk modulus of the inclusion material.
+    :param ui: Shear modulus of the inclusion material.
+    :param xi: Volume fraction of the inclusions
+    :param si: Shape of the inclusions - sphere, needle, disk, penny
+    :param alpha: Aspect ratio of penny crack
+    """
+    def zeta(K, u):
+        Z = u/6*(9*K + 8*u)/(K + 2*u)
+        return(Z)
+
+    def gamma(K, u):
+        g = u*(3*K + u)/(3*K + 7*u)
+        return(g)
+
+    def beta(K, u):
+        B = u*(3*K + u)/(3*K + 4*u)
+        return(B)
+
+    if si == 'sphere':
+        Pmi = (Km + 4/3*um)/(Ki + 4/3*um)
+        Qmi = (um + zeta(Km, um))/(ui + zeta(Km, um))
+    elif si == 'needle':
+        Pmi = (Km + um + 1/3*ui)/(Ki + um + 1/3*ui)
+        Qmi = 1/5*(4*um / (um + ui) +
+                   2*(um + gamma(Km, um))/(ui + gamma(Km, um)) +
+                   (Ki + 4/3*um)/(Ki + um + 1/3*ui))
+    elif si == 'disk':
+        Pmi = (Km + 4/3*ui)/(Ki + 4/3*ui)
+        Qmi = (um + zeta(Ki, ui))/(ui + zeta(Ki, ui))
+    elif si == 'penny':
+        Pmi = (Km + 4/3*ui)/(Ki + 4/3*ui + np.pi*alpha*beta(Km, um))
+        Qmi = 1/5*(1 +
+                   8*um/(4*ui + np.pi*alpha*(um + 2*beta(Km, um))) +
+                   2*(Ki + 2/3*(ui + um))/(Ki + 4/3*ui + np.pi*alpha*beta(Km, um)))
+
+    Kkt = ((Km / (4/3)*um)*Km - (4/3)*xi*(Ki - Km)*Pmi*um) / ((Km / (4/3)*um) - xi*(Ki - Km)*Pmi)
+
+    ukt = 0
+    return(Kkt, ukt)
+
+
 def tuning_wedge(Rpp, f0, t):
     """
     Calculate the amplitude at the interface between the top two layers of a

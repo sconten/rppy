@@ -21,6 +21,24 @@ from rppy import rppy
 import numpy as np
 
 
+def test_kuster_toksoz():
+    err = 0.005
+    Km = 37
+    um = 44
+    Ki = 2.25
+    ui = 0
+    xi = 0.1
+    si = 'sphere'
+    
+    Kkt_exp = 31.84
+    ukt_exp = 35.7
+    
+    Kkt, ukt = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
+    
+    assert np.abs(Kkt_exp - Kkt)/Kkt_exp < err
+    assert np.abs(ukt_exp - ukt)/ukt_exp < err
+    
+    
 def test_batzle_wang_brine():
     err = 0.005
 
