@@ -28,13 +28,36 @@ def test_kuster_toksoz():
     Ki = 2.25
     ui = 0
     xi = 0.1
-    si = 'sphere'
 
+    # Test spherical pores
+    si = 'sphere'
     Kkt_exp = 31.84
     ukt_exp = 35.7
-
     em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
+    assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
+    assert np.abs(ukt_exp - em['u'])/ukt_exp < err
 
+    # Test needle pores
+    si = 'needle'
+    Kkt_exp = 31.28
+    ukt_exp = 34.12
+    em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
+    assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
+    assert np.abs(ukt_exp - em['u'])/ukt_exp < err
+
+    # Test disk pores
+    si = 'disk'
+    Kkt_exp = 0     # Crash test - known bad TODO
+    ukt_exp = 0
+    em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
+    assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
+    assert np.abs(ukt_exp - em['u'])/ukt_exp < err
+
+    # Test penny pores
+    si = 'penny'
+    Kkt_exp = 0     # Crash test - known bad TODO
+    ukt_exp = 0
+    em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
     assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
     assert np.abs(ukt_exp - em['u'])/ukt_exp < err
 
@@ -113,7 +136,9 @@ def test_snell():
     thetas1E = 20.18
     thetas2E = 22.33
 
-    theta2, thetas1, thetas2, p = rppy.snell(vp1, vp2, vs1, vs2, np.radians(theta1))
+    theta2, thetas1, thetas2, p = rppy.snell(vp1, vp2,
+                                             vs1, vs2,
+                                             np.radians(theta1))
 
     assert np.abs(np.rad2deg(theta2) - theta2E) < err
     assert np.abs(np.rad2deg(thetas1) - thetas1E) < err

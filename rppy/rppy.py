@@ -512,7 +512,7 @@ def bulk(E=None, v=None, u=None, L=None, Vp=None, Vs=None, rho=None):
 
 def lame(E=None, v=None, u=None, K=None, Vp=None, Vs=None, rho=None):
     """
-    Compute the first Lame's parameter of a material given sufficient other moduli.
+    Compute the first Lame's parameter of a material given other moduli.
 
     :param: E: Young's modulus (combine with v, u, or K)
     :param v: Poisson's ratio (combine with E, u, or K)
@@ -543,57 +543,69 @@ def lame(E=None, v=None, u=None, K=None, Vp=None, Vs=None, rho=None):
 
 def main(*args):
 
-#    K = np.array([36, 2.2])
-#    u = np.array([31, 2.2])
-#
-#    fw = np.arange(0, 1, 0.01)
-#
-#    v = np.empty(np.shape(fw))
-#    r = np.empty(np.shape(fw))
-#    h = np.empty(np.shape(fw))
-#    hsu = np.empty(np.shape(fw))
-#    hsl = np.empty(np.shape(fw))
-#
-#    for x in np.arange(0, len(fw)):
-#        v[x], r[x], h[x] = voight_reuss_hill(K, np.array([1-fw[x], fw[x]]))
-#        returned = hashin_shtrikman(K, u, np.array([1-fw[x], fw[x]]))
-#        hsu[x] = returned[0]
-#        hsl[x] = returned[1]
-#
-#    plt.plot(fw, v, 'r')
-#    plt.plot(fw, r, 'r')
-#    plt.plot(fw, hsu, 'r')
-#    plt.plot(fw, hsl, 'b')
-#
-#    plt.axis([0, 1, 0, 35])
-#    plt.show()
-#
-#    thetas = np.arange(1, 47, 1)
-#    Rppz = np.empty(np.shape(thetas))
-#    Rppb = np.empty(np.shape(thetas))
-#    Rppak = np.empty(np.shape(thetas))
-#    Rpps = np.empty(np.shape(thetas))
-#
-#    plt.figure(2)
-#    for n in range(np.size(thetas)):
-#        dummy = zoeppritz(3000, 1500, 2000, 4000, 2000, 2200, np.radians(thetas[n]))
-#        Rppz[n] = dummy[0]
-#        Rppb[n] = bortfeld(3000, 1500, 2000, 4000, 2000, 2200, np.radians(thetas[n]))
-#        Rppak[n] = aki_richards(3000, 1500, 2000, 4000, 2000, 2200, np.radians(thetas[n]))
-#        Rpps[n] = shuey(3000, 1500, 2000, 4000, 2000, 2200, np.radians(thetas[n]))
-#
-#    plt.plot(thetas, Rppz, thetas, Rppb, thetas, Rppak, thetas, Rpps)
-#    plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey'])
-#    plt.xlim([20, 40])
-#    plt.ylim([0.14, 0.22])
-#    plt.show()
-#
-#    t = np.arange(0, 15, 0.1)
-#
-#    A = tuning_wedge(1, 90, t)
-#
-#    plt.figure(3)
-#    plt.plot(A)
+    K = np.array([36, 2.2])
+    u = np.array([31, 2.2])
+
+    fw = np.arange(0, 1, 0.01)
+
+    v = np.empty(np.shape(fw))
+    r = np.empty(np.shape(fw))
+    h = np.empty(np.shape(fw))
+    hsu = np.empty(np.shape(fw))
+    hsl = np.empty(np.shape(fw))
+
+    for x in np.arange(0, len(fw)):
+        v[x], r[x], h[x] = voight_reuss_hill(K, np.array([1-fw[x], fw[x]]))
+        returned = hashin_shtrikman(K, u, np.array([1-fw[x], fw[x]]))
+        hsu[x] = returned[0]
+        hsl[x] = returned[1]
+
+    plt.plot(fw, v, 'k')
+    plt.plot(fw, r, 'k')
+    plt.plot(fw, hsu, 'k')
+    plt.plot(fw, hsl, 'k')
+
+    plt.axis([0, 1, 0, 40])
+    plt.show()
+
+    thetas = np.arange(1, 47, 1)
+    Rppz = np.empty(np.shape(thetas))
+    Rppb = np.empty(np.shape(thetas))
+    Rppak = np.empty(np.shape(thetas))
+    Rpps = np.empty(np.shape(thetas))
+
+    plt.figure(2)
+    for n in range(np.size(thetas)):
+        dummy = zoeppritz(3000, 1500,
+                          2000, 4000,
+                          2000, 2200,
+                          np.radians(thetas[n]))
+        Rppz[n] = dummy[0]
+        Rppb[n] = bortfeld(3000, 1500,
+                           2000, 4000,
+                           2000, 2200,
+                           np.radians(thetas[n]))
+        Rppak[n] = aki_richards(3000, 1500,
+                                2000, 4000,
+                                2000, 2200,
+                                np.radians(thetas[n]))
+        Rpps[n] = shuey(3000, 1500,
+                        2000, 4000,
+                        2000, 2200,
+                        np.radians(thetas[n]))
+
+    plt.plot(thetas, Rppz, thetas, Rppb, thetas, Rppak, thetas, Rpps)
+    plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey'])
+    plt.xlim([0, 50])
+    plt.ylim([0, 0.5])
+    plt.show()
+
+    t = np.arange(0, 15, 0.1)
+
+    A = tuning_wedge(1, 90, t)
+
+    plt.figure(3)
+    plt.plot(A)
 
     #########################################
     Km = 37
@@ -601,10 +613,7 @@ def main(*args):
     Ki = 2.25
     ui = 0
     xi = 0.1
-    si = 'needle'
-
-    Kkt_exp = 31.84
-    ukt_exp = 35.7
+    si = 'sphere'
 
     em = kuster_toksoz(Km, um, Ki, ui, xi, si)
 
