@@ -29,16 +29,16 @@ def test_kuster_toksoz():
     ui = 0
     xi = 0.1
     si = 'sphere'
-    
+
     Kkt_exp = 31.84
     ukt_exp = 35.7
-    
-    Kkt, ukt = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
-    
-    assert np.abs(Kkt_exp - Kkt)/Kkt_exp < err
-    assert np.abs(ukt_exp - ukt)/ukt_exp < err
-    
-    
+
+    em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
+
+    assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
+    assert np.abs(ukt_exp - em['u'])/ukt_exp < err
+
+
 def test_batzle_wang_brine():
     err = 0.005
 
@@ -203,4 +203,3 @@ def test_lame():
     assert np.abs(rppy.lame(v=v, u=u) - expected)/expected < err
     assert np.abs(rppy.lame(v=v, K=K) - expected)/expected < err
     assert np.abs(rppy.lame(u=u, K=K) - expected)/expected < err
-
