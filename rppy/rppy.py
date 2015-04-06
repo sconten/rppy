@@ -52,7 +52,7 @@ def kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=None):
     if si == 'sphere':
         Pmi = (Km + 4/3*um)/(Ki + 4/3*um)
         Qmi = (um + zeta(Km, um))/(ui + zeta(Km, um))
-    elif si == 'needle':
+    elif si == 'needle':    # Manually vetted with RPH p.185 parameters
         Pmi = (Km + um + 1/3*ui)/(Ki + um + 1/3*ui)
         Qmi = 1/5*(4*um / (um + ui) +
                    2*(um + gamma(Km, um))/(ui + gamma(Km, um)) +
@@ -87,7 +87,8 @@ def tuning_wedge(Rpp, f0, t):
     :param f0: Dominant frequency of the Ricker source wavelet
     :param t: Time thickness of layer 2
     """
-    A = Rpp*(1 - (1 - 2*np.pi**2*f0**2*(t/1000)**2)*np.exp(-np.pi**2*(t/1000)**2*f0**2))
+    A = Rpp*(1 - (1 - 2*np.pi**2*f0**2*(t/1000)**2) *
+             np.exp(-np.pi**2*(t/1000)**2*f0**2))
 
     return A
 
@@ -600,7 +601,7 @@ def main(*args):
     Ki = 2.25
     ui = 0
     xi = 0.1
-    si = 'sphere'
+    si = 'needle'
 
     Kkt_exp = 31.84
     ukt_exp = 35.7
