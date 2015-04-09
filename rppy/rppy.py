@@ -279,7 +279,7 @@ def zoeppritz(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     :param rho2: Density of lower layer.
     :param theta1: Angle of incidence for P wave in upper layer.
     """
-    # Need reflection and refraction angled for Zoeppritz
+    # Need reflection and refraction angles for Zoeppritz
     theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
 
     M = np.array([
@@ -539,6 +539,54 @@ def lame(E=None, v=None, u=None, K=None, Vp=None, Vs=None, rho=None):
     else:
         L = None
     return(L)
+
+
+def Vp(rho, E=None, v=None, u=None, K=None, L=None):
+    """
+    Compute P-velocity of a material given other moduli.
+
+    :param E: Young's modulus (combine with v, u, or K)
+    :param v: Poisson's ratio (combine with E, u, or K)
+    :param u: shear modulus (combine with E, v, or K)
+    :param K: Bulk modulus (combine with E, v, or u)
+    :param L: First Lame parameter (combine with E, v, or u)
+    :param rho: Density
+    """
+    if E and v:
+        u = shear(E=E, v=v)
+        K = bulk(E=E, v=v)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif E and u:
+        K = bulk(E=E, u=u)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif E and K:
+        u = shear(E=E, K=K)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif E and L:
+        K = bulk(E=E, L=L)
+        u = shear(E=E, L=L)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif v and u:
+        K = bulk(v=v, u=u)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif v and K:
+        u = shear(v=v, K=K)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif v and L:
+        K = bulk(v=v, L=L)
+        u = shear(v=v, L=L)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif u and K:
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif u and L:
+        K = bulk(u=u, L=L)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif K and L:
+        u = shear(K=K, L=L)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    else:
+        Vp = None
+    return(Vp)
 
 
 def main(*args):

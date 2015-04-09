@@ -62,6 +62,10 @@ def test_kuster_toksoz():
     assert np.abs(ukt_exp - em['u'])/ukt_exp < err
 
 
+def test_tuning_wedge():
+    assert 0 == 1
+
+
 def test_batzle_wang_brine():
     err = 0.005
 
@@ -143,6 +147,30 @@ def test_snell():
     assert np.abs(np.rad2deg(theta2) - theta2E) < err
     assert np.abs(np.rad2deg(thetas1) - thetas1E) < err
     assert np.abs(np.rad2deg(thetas2) - thetas2E) < err
+
+
+def test_shuey():
+    assert 0 == 1
+
+
+def test_aki_richards():
+    assert 0 == 1
+
+
+def test_zoeppritz():
+    assert 0 == 1
+
+
+def test_bortfeld():
+    assert 0 == 1
+
+
+def test_hashin_shtrikman():
+    assert 0 == 1
+
+
+def test_voight_reuss_hill():
+    assert 0 == 1
 
 
 def test_youngs():
@@ -228,3 +256,7 @@ def test_lame():
     assert np.abs(rppy.lame(v=v, u=u) - expected)/expected < err
     assert np.abs(rppy.lame(v=v, K=K) - expected)/expected < err
     assert np.abs(rppy.lame(u=u, K=K) - expected)/expected < err
+
+
+def test_Vp():
+    assert 0 == 1
