@@ -589,6 +589,42 @@ def Vp(rho, E=None, v=None, u=None, K=None, L=None):
     return(Vp)
 
 
+def Vs(rho, E=None, v=None, u=None, K=None, L=None):
+    """
+    Compute S-velocity of a material given other moduli.
+
+    :param E: Young's modulus (combine with v, u, or K)
+    :param v: Poisson's ratio (combine with E, u, or K)
+    :param u: shear modulus (combine with E, v, or K)
+    :param K: Bulk modulus (combine with E, v, or u)
+    :param L: First Lame parameter (combine with E, v, or u)
+    :param rho: Density
+    """
+    if u:
+        Vs = np.sqrt(u/rho)
+    elif E and v:
+        u = shear(E=E, v=v)
+        Vs = np.sqrt(u/rho)
+    elif E and K:
+        u = shear(E=E, K=K)
+        Vs = np.sqrt(u/rho)
+    elif E and L:
+        u = shear(E=E, L=L)
+        Vs = np.sqrt(u/rho)
+    elif v and K:
+        u = shear(v=v, K=K)
+        Vs = np.sqrt(u/rho)
+    elif v and L:
+        u = shear(v=v, L=L)
+        Vs = np.sqrt(u/rho)
+    elif K and L:
+        u = shear(K=K, L=L)
+        Vs = np.sqrt(u/rho)
+    else:
+        Vs = None
+    return(Vs)
+
+
 def main(*args):
 
     K = np.array([36, 2.2])
