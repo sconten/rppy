@@ -24,7 +24,8 @@ import matplotlib.pyplot as plt
 def kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=None):
     """
     Calculate the effective bulk and shear moduli of a background medium after
-    introducing inclusions.
+    introducing inclusions. Uses Berryman's generalization of the Kuster-
+    Toksoz inclusion model.
 
     Note: Function is not currently set up to natively handle a multiphase
     material with more than one inclusion type.
@@ -59,14 +60,19 @@ def kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=None):
                    (Ki + 4/3*um)/(Ki + um + 1/3*ui))
     elif si == 'disk':
         Pmi = (Km + 4/3*ui)/(Ki + 4/3*ui)
-        Qmi = (um + zeta(Ki, ui))/(ui + zeta(Ki, ui))
+        print(Pmi)
+        if ui > 0:
+            Qmi = (um + zeta(Ki, ui))/(ui + zeta(Ki, ui))
+        else:
+            Qmi = 0
     elif si == 'penny':
         Pmi = (Km + 4/3*ui)/(Ki + 4/3*ui + np.pi*alpha*beta(Km, um))
         Qmi = 1/5*(1 +
-                   8*um/(4*ui + np.pi*alpha*(um + 2*beta(Km, um))) +
+                   8*um / (4*ui + np.pi*alpha*(um + 2*beta(Km, um))) +
                    2*(Ki + 2/3*(ui + um)) /
                    (Ki + 4/3*ui + np.pi*alpha*beta(Km, um)))
-
+        print(Pmi)
+        print(Qmi)
     Kkt = (((Km + 4/3*um)*Km + 4/3*xi*(Ki - Km)*Pmi*um) /
            (Km + 4/3*um - xi*(Ki - Km)*Pmi))
 

@@ -50,16 +50,21 @@ def test_kuster_toksoz():
 #    Kkt_exp = 0     # Crash test - known bad TODO
 #    ukt_exp = 0
 #    em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
+#    print(em['K'])
+#    print(em['u'])
 #    assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
 #    assert np.abs(ukt_exp - em['u'])/ukt_exp < err
-#
-#    # Test penny pores
-#    si = 'penny'
-#    Kkt_exp = 0     # Crash test - known bad TODO
-#    ukt_exp = 0
-#    em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
-#    assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
-#    assert np.abs(ukt_exp - em['u'])/ukt_exp < err
+
+    # Test penny pores
+    si = 'penny'
+    alpha = 0.01
+    Kkt_exp = 0     # Crash test - known bad TODO
+    ukt_exp = 0
+    em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=alpha)
+    print(em['K'])
+    print(em['u'])
+    assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
+    assert np.abs(ukt_exp - em['u'])/ukt_exp < err
 
 
 def test_tuning_wedge():
