@@ -21,6 +21,68 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=None):
+    """
+    Calculate the effective bulk and shear moduli of a background medium after
+    introducing inclusions. Uses Berryman's generalization of the Kuster-
+    Toksoz inclusion model.
+
+    Note: Function is not currently set up to natively handle a multiphase
+    material with more than one inclusion type.
+
+    :param Km: Bulk modulus of the background medium.
+    :param um: Shear modulus of the background medium.
+    :param Ki: Bulk modulus of the inclusion material.
+    :param ui: Shear modulus of the inclusion material.
+    :param xi: Volume fraction of the inclusions
+    :param si: Shape of the inclusions - sphere, needle, or, penny
+    :param alpha: Aspect ratio of penny crack
+    """
+    def zeta(K, u):
+        Z = u/6*(9*K + 8*u)/(K + 2*u)
+        return(Z)
+
+    def gamma(K, u):
+        g = u*(3*K + u)/(3*K + 7*u)
+        return(g)
+
+    def beta(K, u):
+        B = u*(3*K + u)/(3*K + 4*u)
+        return(B)
+
+    if si == 'sphere':
+        Pmi = (Km + 4/3*um)/(Ki + 4/3*um)
+        Qmi = (um + zeta(Km, um))/(ui + zeta(Km, um))
+    elif si == 'needle':    # Manually vetted with RPH p.185 parameters
+        Pmi = (Km + um + 1/3*ui)/(Ki + um + 1/3*ui)
+        Qmi = 1/5*(4*um / (um + ui) +
+                   2*(um + gamma(Km, um))/(ui + gamma(Km, um)) +
+                   (Ki + 4/3*um)/(Ki + um + 1/3*ui))
+    elif si == 'disk':
+        Pmi = (Km + 4/3*ui)/(Ki + 4/3*ui)
+        print(Pmi)
+        if ui > 0:
+            Qmi = (um + zeta(Ki, ui))/(ui + zeta(Ki, ui))
+        else:
+            Qmi = 0
+    elif si == 'penny':
+        Pmi = (Km + 4/3*ui)/(Ki + 4/3*ui + np.pi*alpha*beta(Km, um))
+        Qmi = 1/5*(1 +
+                   8*um / (4*ui + np.pi*alpha*(um + 2*beta(Km, um))) +
+                   2*(Ki + 2/3*(ui + um)) /
+                   (Ki + 4/3*ui + np.pi*alpha*beta(Km, um)))
+        print(Pmi)
+        print(Qmi)
+    Kkt = (((Km + 4/3*um)*Km + 4/3*xi*(Ki - Km)*Pmi*um) /
+           (Km + 4/3*um - xi*(Ki - Km)*Pmi))
+
+    ukt = ((xi*(ui - um)*Qmi*zeta(Km, um) + (um + zeta(Km, um))*um) /
+           (um + zeta(Km, um) - xi*(ui - um)*Qmi))
+
+    out = {'K': Kkt, 'u': ukt}
+    return(out)
+
+
 def tuning_wedge(Rpp, f0, t):
     """
     Calculate the amplitude at the interface between the top two layers of a
@@ -31,7 +93,8 @@ def tuning_wedge(Rpp, f0, t):
     :param f0: Dominant frequency of the Ricker source wavelet
     :param t: Time thickness of layer 2
     """
-    A = Rpp*(1 - (1 - 2*np.pi**2*f0**2*(t/1000)**2)*np.exp(-np.pi**2*(t/1000)**2*f0**2))
+    A = Rpp*(1 - (1 - 2*np.pi**2*f0**2*(t/1000)**2) *
+             np.exp(-np.pi**2*(t/1000)**2*f0**2))
 
     return A
 
@@ -222,7 +285,7 @@ def zoeppritz(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     :param rho2: Density of lower layer.
     :param theta1: Angle of incidence for P wave in upper layer.
     """
-    # Need reflection and refraction angled for Zoeppritz
+    # Need reflection and refraction angles for Zoeppritz
     theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
 
     M = np.array([
@@ -455,7 +518,7 @@ def bulk(E=None, v=None, u=None, L=None, Vp=None, Vs=None, rho=None):
 
 def lame(E=None, v=None, u=None, K=None, Vp=None, Vs=None, rho=None):
     """
-    Compute the first Lame's parameter of a material given sufficient other moduli.
+    Compute the first Lame's parameter of a material given other moduli.
 
     :param: E: Young's modulus (combine with v, u, or K)
     :param v: Poisson's ratio (combine with E, u, or K)
@@ -484,6 +547,90 @@ def lame(E=None, v=None, u=None, K=None, Vp=None, Vs=None, rho=None):
     return(L)
 
 
+def Vp(rho, E=None, v=None, u=None, K=None, L=None):
+    """
+    Compute P-velocity of a material given other moduli.
+
+    :param E: Young's modulus (combine with v, u, or K)
+    :param v: Poisson's ratio (combine with E, u, or K)
+    :param u: shear modulus (combine with E, v, or K)
+    :param K: Bulk modulus (combine with E, v, or u)
+    :param L: First Lame parameter (combine with E, v, or u)
+    :param rho: Density
+    """
+    if E and v:
+        u = shear(E=E, v=v)
+        K = bulk(E=E, v=v)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif E and u:
+        K = bulk(E=E, u=u)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif E and K:
+        u = shear(E=E, K=K)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif E and L:
+        K = bulk(E=E, L=L)
+        u = shear(E=E, L=L)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif v and u:
+        K = bulk(v=v, u=u)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif v and K:
+        u = shear(v=v, K=K)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif v and L:
+        K = bulk(v=v, L=L)
+        u = shear(v=v, L=L)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif u and K:
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif u and L:
+        K = bulk(u=u, L=L)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    elif K and L:
+        u = shear(K=K, L=L)
+        Vp = np.sqrt((K + 4/3*u)/rho)
+    else:
+        Vp = None
+    return(Vp)
+
+
+def Vs(rho, E=None, v=None, u=None, K=None, L=None):
+    """
+    Compute S-velocity of a material given other moduli.
+
+    :param E: Young's modulus (combine with v, u, or K)
+    :param v: Poisson's ratio (combine with E, u, or K)
+    :param u: shear modulus (combine with E, v, or K)
+    :param K: Bulk modulus (combine with E, v, or u)
+    :param L: First Lame parameter (combine with E, v, or u)
+    :param rho: Density
+    """
+    if u:
+        Vs = np.sqrt(u/rho)
+    elif E and v:
+        u = shear(E=E, v=v)
+        Vs = np.sqrt(u/rho)
+    elif E and K:
+        u = shear(E=E, K=K)
+        Vs = np.sqrt(u/rho)
+    elif E and L:
+        u = shear(E=E, L=L)
+        Vs = np.sqrt(u/rho)
+    elif v and K:
+        u = shear(v=v, K=K)
+        Vs = np.sqrt(u/rho)
+    elif v and L:
+        u = shear(v=v, L=L)
+        Vs = np.sqrt(u/rho)
+    elif K and L:
+        u = shear(K=K, L=L)
+        Vs = np.sqrt(u/rho)
+    else:
+        Vs = None
+    return(Vs)
+
+
 def main(*args):
 
     K = np.array([36, 2.2])
@@ -503,12 +650,12 @@ def main(*args):
         hsu[x] = returned[0]
         hsl[x] = returned[1]
 
-    plt.plot(fw, v, 'r')
-    plt.plot(fw, r, 'r')
-    plt.plot(fw, hsu, 'r')
-    plt.plot(fw, hsl, 'b')
+    plt.plot(fw, v, 'k')
+    plt.plot(fw, r, 'k')
+    plt.plot(fw, hsu, 'k')
+    plt.plot(fw, hsl, 'k')
 
-    plt.axis([0, 1, 0, 35])
+    plt.axis([0, 1, 0, 40])
     plt.show()
 
     thetas = np.arange(1, 47, 1)
@@ -519,16 +666,28 @@ def main(*args):
 
     plt.figure(2)
     for n in range(np.size(thetas)):
-        dummy = zoeppritz(3000, 1500, 2000, 4000, 2000, 2200, np.radians(thetas[n]))
+        dummy = zoeppritz(3000, 1500,
+                          2000, 4000,
+                          2000, 2200,
+                          np.radians(thetas[n]))
         Rppz[n] = dummy[0]
-        Rppb[n] = bortfeld(3000, 1500, 2000, 4000, 2000, 2200, np.radians(thetas[n]))
-        Rppak[n] = aki_richards(3000, 1500, 2000, 4000, 2000, 2200, np.radians(thetas[n]))
-        Rpps[n] = shuey(3000, 1500, 2000, 4000, 2000, 2200, np.radians(thetas[n]))
+        Rppb[n] = bortfeld(3000, 1500,
+                           2000, 4000,
+                           2000, 2200,
+                           np.radians(thetas[n]))
+        Rppak[n] = aki_richards(3000, 1500,
+                                2000, 4000,
+                                2000, 2200,
+                                np.radians(thetas[n]))
+        Rpps[n] = shuey(3000, 1500,
+                        2000, 4000,
+                        2000, 2200,
+                        np.radians(thetas[n]))
 
     plt.plot(thetas, Rppz, thetas, Rppb, thetas, Rppak, thetas, Rpps)
     plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey'])
-    plt.xlim([20, 40])
-    plt.ylim([0.14, 0.22])
+    plt.xlim([0, 50])
+    plt.ylim([0, 0.5])
     plt.show()
 
     t = np.arange(0, 15, 0.1)
@@ -537,6 +696,19 @@ def main(*args):
 
     plt.figure(3)
     plt.plot(A)
+
+    #########################################
+    Km = 37
+    um = 44
+    Ki = 2.25
+    ui = 0
+    xi = 0.1
+    si = 'sphere'
+
+    em = kuster_toksoz(Km, um, Ki, ui, xi, si)
+
+    print(em['K'])
+    print(em['u'])
 
 
 if __name__ == "__main__":
