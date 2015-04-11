@@ -35,7 +35,7 @@ def kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=None):
     :param Ki: Bulk modulus of the inclusion material.
     :param ui: Shear modulus of the inclusion material.
     :param xi: Volume fraction of the inclusions
-    :param si: Shape of the inclusions - sphere, needle, disk, penny
+    :param si: Shape of the inclusions - sphere, needle, or, penny
     :param alpha: Aspect ratio of penny crack
     """
     def zeta(K, u):

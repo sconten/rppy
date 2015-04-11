@@ -25,41 +25,31 @@ def test_kuster_toksoz():
     err = 0.005
     Km = 37
     um = 44
-    Ki = 2.25
+    Ki = 0
     ui = 0
-    xi = 0.1
+    xi = 0.01
 
     # Test spherical pores
     si = 'sphere'
-    Kkt_exp = 31.84
-    ukt_exp = 35.7
+    Kkt_exp = 36.4
+    ukt_exp = 43.088
     em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
     assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
     assert np.abs(ukt_exp - em['u'])/ukt_exp < err
 
     # Test needle pores
     si = 'needle'
-    Kkt_exp = 31.28
-    ukt_exp = 34.12
+    Kkt_exp = 36.324
+    ukt_exp = 42.894
     em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
     assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
     assert np.abs(ukt_exp - em['u'])/ukt_exp < err
 
-#    # Test disk pores
-#    si = 'disk'
-#    Kkt_exp = 0     # Crash test - known bad TODO
-#    ukt_exp = 0
-#    em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
-#    print(em['K'])
-#    print(em['u'])
-#    assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
-#    assert np.abs(ukt_exp - em['u'])/ukt_exp < err
-
     # Test penny pores
     si = 'penny'
     alpha = 0.01
-    Kkt_exp = 0     # Crash test - known bad TODO
-    ukt_exp = 0
+    Kkt_exp = 21.612
+    ukt_exp = 29.323
     em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=alpha)
     print(em['K'])
     print(em['u'])
