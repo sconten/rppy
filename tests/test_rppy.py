@@ -149,28 +149,28 @@ def test_snell():
     assert np.abs(np.rad2deg(thetas2) - thetas2E) < err
 
 
-# def test_shuey():
-#    assert 0 == 1
-#
-#
-# def test_aki_richards():
-#    assert 0 == 1
-#
-#
-# def test_zoeppritz():
-#    assert 0 == 1
-#
-#
-# def test_bortfeld():
-#    assert 0 == 1
-#
-#
-# def test_hashin_shtrikman():
-#    assert 0 == 1
-#
-#
-# def test_voight_reuss_hill():
-#    assert 0 == 1
+ def test_shuey():
+    assert 0 == 1
+
+
+ def test_aki_richards():
+    assert 0 == 1
+
+
+ def test_zoeppritz():
+    assert 0 == 1
+
+
+ def test_bortfeld():
+    assert 0 == 1
+
+
+ def test_hashin_shtrikman():
+    assert 0 == 1
+
+
+ def test_voight_reuss_hill():
+    assert 0 == 1
 
 
 def test_youngs():
