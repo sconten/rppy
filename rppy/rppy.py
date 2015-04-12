@@ -21,6 +21,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def gassmann(K0, Kin, Kfout, Kfin, phi):
+    A = Kfout / (phi*(K0 - Kfout))
+    B = Kin / (K0 - Kin)
+    C = Kfin / (phi*(K0 - Kfin))
+    D = A + B - C
+
+    Kout = K0*D / (1 + D)
+
+    return(Kout)
+
+
 def kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=None):
     """
     Calculate the effective bulk and shear moduli of a background medium after

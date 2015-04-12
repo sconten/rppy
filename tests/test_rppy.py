@@ -21,6 +21,26 @@ from rppy import rppy
 import numpy as np
 
 
+def test_gassmann():
+    err = 0.005
+    Kfin = 0
+    K0 = 36
+    Kin = 12
+    phi = 0.2
+
+    # Saturate with gas
+    Kfout = 0.133
+    exp = 12.29
+    Kgas = rppy.gassmann(K0, Kin, Kfout, Kfin, phi)
+    assert np.abs(Kgas - exp)/exp < err
+
+    # Saturate with brine
+    Kfout = 3.013
+    exp = 17.6
+    Kbr = rppy.gassmann(K0, Kin, Kfout, Kfin, phi)
+    assert np.abs(Kbr - exp)/exp < err
+
+
 def test_kuster_toksoz():
     err = 0.005
     Km = 37
@@ -149,28 +169,28 @@ def test_snell():
     assert np.abs(np.rad2deg(thetas2) - thetas2E) < err
 
 
- def test_shuey():
-    assert 0 == 1
-
-
- def test_aki_richards():
-    assert 0 == 1
-
-
- def test_zoeppritz():
-    assert 0 == 1
-
-
- def test_bortfeld():
-    assert 0 == 1
-
-
- def test_hashin_shtrikman():
-    assert 0 == 1
-
-
- def test_voight_reuss_hill():
-    assert 0 == 1
+#def test_shuey():
+#    assert 0 == 1
+#
+#
+#def test_aki_richards():
+#    assert 0 == 1
+#
+#
+#def test_zoeppritz():
+#    assert 0 == 1
+#
+#
+#def test_bortfeld():
+#    assert 0 == 1
+#
+#
+#def test_hashin_shtrikman():
+#    assert 0 == 1
+#
+#
+#def test_voight_reuss_hill():
+#    assert 0 == 1
 
 
 def test_youngs():
