@@ -47,8 +47,10 @@ def gassmann(K0, Kin, Kfin, Kfout, phi):
 
     :param K0: Frame mineral modulus (Gpa)
     :param Kin: Input rock modulus (can be fluid saturated or dry)
-    :param Kfin: Bulk modulus of the pore-filling fluid of the inital rock (0 if input is the dry-rock modulus)
-    :param Kfout: Bulk modulus of the pore-filling fluid of the output (0 if output is dry-rock modulus)
+    :param Kfin: Bulk modulus of the pore-filling fluid of the inital rock
+                 (0 if input is the dry-rock modulus)
+    :param Kfout: Bulk modulus of the pore-filling fluid of the output
+                  (0 if output is dry-rock modulus)
     :param phi: Porosity of the rock
     """
     A = Kfout / (phi*(K0 - Kfout))
@@ -149,8 +151,8 @@ def batzle_wang(P, T, fluid, S=None, G=None, api=None, Rg=None):
     :param fluid: Fluid type to calculate: brine, gas, or oil
     :param S: Salinity (brine only, in ppm)
     :param G: Gas gravity (gas mode only, ratio of gas density to air density
-    at 15.6C and atmospheric pressure)
-    :param api: American Petroleum Insitute (API) oi gravity
+              at 15.6C and atmospheric pressure)
+    :param api: American Petroleum Insitute (API) oil gravity
     :param Rg: Gas-oil ratio
     """
 
