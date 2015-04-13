@@ -21,7 +21,36 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def gassmann(K0, Kin, Kfout, Kfin, phi):
+def ciz_shapiro(K0, Kdry, Kf, u0, udry, uf, phi, Kphi=None, uphi=None):
+    """
+    Generalized form of Gassmann's equation to perform fluid substitution to
+    allow for a solid (non-zero shear modulus) pore-filling material.
+
+    """
+    if Kphi is None:
+        Kphi = K0
+
+    Ksat = (1/Kdry - (1/Kdry - 1/K0)**2 /
+            (phi*(1/Kf - 1/Kphi) + (1/Kdry - 1/K0)))
+
+    usat = (1/udry - (1/udry - 1/u0)**2 /
+            (phi*(1/uf - 1/uphi) + (1/udry - 1/u0)))
+
+    return(Ksat, usat)
+
+
+def gassmann(K0, Kin, Kfin, Kfout, phi):
+    """
+    Use Gassmann's equation to perform fluid substitution. Use the bulk modulus
+    of a rock saturated with one fluid (or dry frame, Kfin=0) to preduct the
+    bulk modulus of a rock second with a second fluid.
+
+    :param K0: Frame mineral modulus (Gpa)
+    :param Kin: Input rock modulus (can be fluid saturated or dry)
+    :param Kfin: Bulk modulus of the pore-filling fluid of the inital rock (0 if input is the dry-rock modulus)
+    :param Kfout: Bulk modulus of the pore-filling fluid of the output (0 if output is dry-rock modulus)
+    :param phi: Porosity of the rock
+    """
     A = Kfout / (phi*(K0 - Kfout))
     B = Kin / (K0 - Kin)
     C = Kfin / (phi*(K0 - Kfin))
