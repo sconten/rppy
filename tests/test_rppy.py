@@ -31,13 +31,13 @@ def test_gassmann():
     # Saturate with gas
     Kfout = 0.133
     exp = 12.29
-    Kgas = rppy.gassmann(K0, Kin, Kfout, Kfin, phi)
+    Kgas = rppy.gassmann(K0, Kin, Kfin, Kfout, phi)
     assert np.abs(Kgas - exp)/exp < err
 
     # Saturate with brine
     Kfout = 3.013
     exp = 17.6
-    Kbr = rppy.gassmann(K0, Kin, Kfout, Kfin, phi)
+    Kbr = rppy.gassmann(K0, Kin, Kfin, Kfout, phi)
     assert np.abs(Kbr - exp)/exp < err
 
 
