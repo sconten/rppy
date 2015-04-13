@@ -185,10 +185,25 @@ def test_snell():
 #    assert 0 == 1
 #
 #
-#def test_hashin_shtrikman():
-#    assert 0 == 1
-#
-#
+def test_hashin_shtrikman():
+    err = 0.005
+    K = np.array([36, 75, 2.2])
+    u = np.array([45., 31., 0.])
+    f = np.array([0.584, 0.146, 0.270])
+
+    Kue = 26.9
+    Kle = 7.10
+    uue = 24.6
+    ule = 0
+
+    Ku, Kl, uu, ul = rppy.hashin_shtrikman(K, u, f)
+
+    assert np.abs(Ku - Kue)/Kue < err
+    assert np.abs(Kl - Kle)/Kue < err
+    assert np.abs(uu - uue)/Kue < err
+    assert np.abs(ul - ule)/Kue < err
+
+
 #def test_voight_reuss_hill():
 #    assert 0 == 1
 

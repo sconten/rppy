@@ -366,11 +366,11 @@ def hashin_shtrikman(K, u, f):
     """
 
     def HSlambda(z):
-        L = np.average((1/(K + (4/3)*z)), weights=f)**-1 - (4/3)*z
+        L = np.sum(f/(K + (4/3)*z))**-1 - (4/3)*z
         return (L)
 
     def HSgamma(z):
-        G = np.average((1/(u + z)), weights=f)**(-1) - z
+        G = np.sum((f/(u + z)))**(-1) - z
         return (G)
 
     def HSzeta(K, u):
