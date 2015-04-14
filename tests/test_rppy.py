@@ -21,6 +21,26 @@ from rppy import rppy
 import numpy as np
 
 
+def test_gassmann():
+    err = 0.005
+    Kfin = 0
+    K0 = 36
+    Kin = 12
+    phi = 0.2
+
+    # Saturate with gas
+    Kfout = 0.133
+    exp = 12.29
+    Kgas = rppy.gassmann(K0, Kin, Kfin, Kfout, phi)
+    assert np.abs(Kgas - exp)/exp < err
+
+    # Saturate with brine
+    Kfout = 3.013
+    exp = 17.6
+    Kbr = rppy.gassmann(K0, Kin, Kfin, Kfout, phi)
+    assert np.abs(Kbr - exp)/exp < err
+
+
 def test_kuster_toksoz():
     err = 0.005
     Km = 37
@@ -149,27 +169,42 @@ def test_snell():
     assert np.abs(np.rad2deg(thetas2) - thetas2E) < err
 
 
-# def test_shuey():
+#def test_shuey():
 #    assert 0 == 1
 #
 #
-# def test_aki_richards():
+#def test_aki_richards():
 #    assert 0 == 1
 #
 #
-# def test_zoeppritz():
+#def test_zoeppritz():
 #    assert 0 == 1
 #
 #
-# def test_bortfeld():
+#def test_bortfeld():
 #    assert 0 == 1
 #
 #
-# def test_hashin_shtrikman():
-#    assert 0 == 1
-#
-#
-# def test_voight_reuss_hill():
+def test_hashin_shtrikman():
+    err = 0.005
+    K = np.array([36, 75, 2.2])
+    u = np.array([45., 31., 0.])
+    f = np.array([0.584, 0.146, 0.270])
+
+    Kue = 26.9
+    Kle = 7.10
+    uue = 24.6
+    ule = 0
+
+    Ku, Kl, uu, ul = rppy.hashin_shtrikman(K, u, f)
+
+    assert np.abs(Ku - Kue)/Kue < err
+    assert np.abs(Kl - Kle)/Kue < err
+    assert np.abs(uu - uue)/Kue < err
+    assert np.abs(ul - ule)/Kue < err
+
+
+#def test_voight_reuss_hill():
 #    assert 0 == 1
 
 

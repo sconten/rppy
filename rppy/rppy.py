@@ -21,6 +21,48 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+def ciz_shapiro(K0, Kdry, Kf, u0, udry, uf, phi, Kphi=None, uphi=None):
+    """
+    Generalized form of Gassmann's equation to perform fluid substitution to
+    allow for a solid (non-zero shear modulus) pore-filling material.
+
+    """
+    if Kphi is None:
+        Kphi = K0
+
+    Ksat = (1/Kdry - (1/Kdry - 1/K0)**2 /
+            (phi*(1/Kf - 1/Kphi) + (1/Kdry - 1/K0)))
+
+    usat = (1/udry - (1/udry - 1/u0)**2 /
+            (phi*(1/uf - 1/uphi) + (1/udry - 1/u0)))
+
+    return(Ksat, usat)
+
+
+def gassmann(K0, Kin, Kfin, Kfout, phi):
+    """
+    Use Gassmann's equation to perform fluid substitution. Use the bulk modulus
+    of a rock saturated with one fluid (or dry frame, Kfin=0) to preduct the
+    bulk modulus of a rock second with a second fluid.
+
+    :param K0: Frame mineral modulus (Gpa)
+    :param Kin: Input rock modulus (can be fluid saturated or dry)
+    :param Kfin: Bulk modulus of the pore-filling fluid of the inital rock
+                 (0 if input is the dry-rock modulus)
+    :param Kfout: Bulk modulus of the pore-filling fluid of the output
+                  (0 if output is dry-rock modulus)
+    :param phi: Porosity of the rock
+    """
+    A = Kfout / (phi*(K0 - Kfout))
+    B = Kin / (K0 - Kin)
+    C = Kfin / (phi*(K0 - Kfin))
+    D = A + B - C
+
+    Kout = K0*D / (1 + D)
+
+    return(Kout)
+
+
 def kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=None):
     """
     Calculate the effective bulk and shear moduli of a background medium after
@@ -109,8 +151,8 @@ def batzle_wang(P, T, fluid, S=None, G=None, api=None, Rg=None):
     :param fluid: Fluid type to calculate: brine, gas, or oil
     :param S: Salinity (brine only, in ppm)
     :param G: Gas gravity (gas mode only, ratio of gas density to air density
-    at 15.6C and atmospheric pressure)
-    :param api: American Petroleum Insitute (API) oi gravity
+              at 15.6C and atmospheric pressure)
+    :param api: American Petroleum Insitute (API) oil gravity
     :param Rg: Gas-oil ratio
     """
 
@@ -355,11 +397,11 @@ def hashin_shtrikman(K, u, f):
     """
 
     def HSlambda(z):
-        L = np.average((1/(K + (4/3)*z)), weights=f)**-1 - (4/3)*z
+        L = np.sum(f/(K + (4/3)*z))**-1 - (4/3)*z
         return (L)
 
     def HSgamma(z):
-        G = np.average((1/(u + z)), weights=f)**(-1) - z
+        G = np.sum((f/(u + z)))**(-1) - z
         return (G)
 
     def HSzeta(K, u):
