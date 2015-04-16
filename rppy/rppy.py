@@ -1,24 +1,84 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#    rppy - a geophysical library for Python
-#    Copyright (C) 2015  Sean M. Contenti
+#   rppy - a geophysical library for Python
+#   Copyright (c) 2014, Sean M. Contenti
+#   All rights reserved.
 #
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation; either version 2 of the License, or
-#    (at your option) any later version.
+#   Redistribution and use in source and binary forms, with or without
+#   modification, are permitted provided that the following conditions are met:
 #
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+#   1. Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
 #
-#    You should have received a copy of the GNU General Public License along
-#    with this program; if not, write to the Free Software Foundation, Inc.,
-#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#   2. Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+#
+#   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+#   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+#   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+#   PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+#   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+#   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#   OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#   WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+
+def avoa_vti(p1, a1, B1, e1, d1, y1, p2, a2, B2, e2, d2, y2, theta1):
+    """
+    Calculates the P-wave reflection coefficient (Rpp) as a function of
+    incidence angle theta for a anisotropic material with vertical tranvserse
+    isotropy. Method uses the Thomsen (1986) formulation.
+    """
+    theta2, thetas1, thetas2, p = snell(a1, a2, B1, B2, theta1)
+    Z1 = p1*a1
+    Z2 = p2*a2
+    u1 = p1*B1**2
+    u2 = p2*B2**2
+    theta = (theta1 + theta2)/2
+    a = (a1 + a2)/2
+    B = (B1 + B2)/2
+    Z = (Z1 + Z2)/2
+    u = (u1 + u2)/2
+    de = e2 - e1
+    da = a2 - a1
+    dZ = Z2 - Z1
+    du = u2 - u1
+    dd = d2 - d1
+
+    Rpp_iso = (1/2*(dZ / Z) + 1/2*(da/a - (2*B/a)**2*du/u)*np.sin(theta)**2 +
+               1/2*da/a*np.sin(theta)**2*np.tan(theta)**2)
+
+    Rpp_aniso = dd/2*np.sin(theta)**2 + de/2*np.sin(theta)**2*np.tan(theta)**2
+
+    Rpp = Rpp_iso + Rpp_aniso
+
+    return(Rpp)
+
+
+def avoa_hti():
+    """
+    Calculate P-wave reflection coefficient (Rpp) as a function of incidence
+    angle and azimuth for an anisotropic material with horizontal transverse
+    isotropy.
+    """
+    if Z == 0:
+        Rpp = 1/2*dZ/Z + 1/2*(sa/a - (2*B/a)**2*(du/u - 2*dy) + dd)
+    elif z == 90:
+        a = 1
+    else:
+        a = 1
+                    
+
+def avoa_ortho():
+    a = 1
 
 
 def ciz_shapiro(K0, Kdry, Kf, u0, udry, uf, phi, Kphi=None, uphi=None):
