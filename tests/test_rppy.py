@@ -31,16 +31,16 @@ from rppy import rppy
 import numpy as np
 
 
-def test_avoa_vti():
-    assert 1 == 0
-
-
-def test_avoa_hti():
-    assert 1 == 0
-
-
-def test_avoa_ortho():
-    assert 1 == 0
+#def test_avoa_vti():
+#    assert 1 == 0
+#
+#
+#def test_avoa_hti():
+#    assert 1 == 0
+#
+#
+#def test_avoa_ortho():
+#    assert 1 == 0
 
 
 def test_gassmann():
@@ -191,10 +191,23 @@ def test_snell():
     assert np.abs(np.rad2deg(thetas2) - thetas2E) < err
 
 
-#def test_shuey():
-#    assert 0 == 1
-#
-#
+def test_shuey():
+    err = 0.005
+    Vp1 = 3000
+    Vp2 = 4000
+    Vs1 = 1500
+    Vs2 = 2000
+    p1 = 2000
+    p2 = 2200
+    theta1 = 32
+
+    exp = 0.151
+
+    Rpp = rppy.shuey(Vp1, Vs1, p1, Vp2, Vs2, p2, np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
+
+
 #def test_aki_richards():
 #    assert 0 == 1
 #

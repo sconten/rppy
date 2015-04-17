@@ -31,7 +31,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def avoa_vti(p1, a1, B1, e1, d1, y1, p2, a2, B2, e2, d2, y2, theta1):
+def avoa_vti(a1, B1, p1, a2, B2, p2, e1, d1, y1, e2, d2, y2, theta1):
     """
     Calculates the P-wave reflection coefficient (Rpp) as a function of
     incidence angle theta for a anisotropic material with vertical tranvserse
@@ -338,10 +338,10 @@ def shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     theta = (theta1 + theta2)/2
 
     R0 = 0.5*(dvp/vp + drho/rho)
-    G = 0.5*dvp/vp - 2*vs**2/vp**2*(drho/rho + 2*dvs/vs)
-    F = 0.5*dvp/vp
+    B = 0.5*dvp/vp - 2*vs**2/vp**2*(drho/rho + 2*dvs/vs)
+    C = 0.5*dvp/vp
 
-    Rpp = R0 + G*np.sin(theta)**2 + F*(np.tan(theta)**2 - np.sin(theta)**2)
+    Rpp = R0 + B*np.sin(theta)**2 + C*(np.tan(theta)**2 - np.sin(theta)**2)
 
     return(Rpp)
 
@@ -765,6 +765,7 @@ def main(*args):
     Rppb = np.empty(np.shape(thetas))
     Rppak = np.empty(np.shape(thetas))
     Rpps = np.empty(np.shape(thetas))
+    Rpvti = np.empty(np.shape(thetas))
 
     plt.figure(2)
     for n in range(np.size(thetas)):
@@ -781,15 +782,19 @@ def main(*args):
                                 2000, 4000,
                                 2000, 2200,
                                 np.radians(thetas[n]))
-        Rpps[n] = shuey(3000, 1500,
-                        2000, 4000,
-                        2000, 2200,
+        Rpps[n] = shuey(3000, 1500, 2000,
+                        4000, 2000, 2200,
                         np.radians(thetas[n]))
+        Rpvti[n] = avoa_vti(3000, 1500, 2000,
+                         4000, 2000, 2200,
+                         0, 0, 0,
+                         0.1, 0.1, 0.1,
+                         np.radians(thetas[n]))
 
-    plt.plot(thetas, Rppz, thetas, Rppb, thetas, Rppak, thetas, Rpps)
-    plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey'])
+    plt.plot(thetas, Rppz, thetas, Rppb, thetas, Rppak, thetas, Rpps, thetas, Rpvti)
+    plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey', 'Linear VTI'])
     plt.xlim([0, 50])
-    plt.ylim([0, 0.5])
+    plt.ylim([0.15, 0.25])
     plt.show()
 
     t = np.arange(0, 15, 0.1)
