@@ -31,17 +31,51 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def avoa_vti(a1, B1, p1, a2, B2, p2, e1, d1, y1, e2, d2, y2, theta1):
+def phase_shift():
+    return(None)
+
+
+def ricker(f, t):
+    """
+    Calculates a standard zero-phase Ricker (Mexican Hat) wavelet for a given
+    central frequency
+
+    :param t: Time axis of wavelet.
+    :param f: Central frequency of Ricker wavelet.
+    """
+    R = (1 - 2*np.pi**2*f**2*t**2)*np.exp(-np.pi**2*f**2*t**2)
+    return(R)
+
+
+def ormsby(t, f1, f2, f3, f4):
+    """
+    Calculates a standard zero-phase Ormsby wavelet for a given trapezoidal
+    amplitude spectrum
+
+    :param t: Time axis of wavelet.
+    :param f1: Low-frequency stop-band.
+    :param f2: Low-frequency corner.
+    :param f3: High-frequency corner.
+    :param f4: High-frequency stop-band.
+    """
+    O = (((np.pi*f4)**2/(np.pi*f4 - np.pi*f3)*np.sinc(np.pi*f4*t)**2 -
+          (np.pi*f3)**2/(np.pi*f4 - np.pi*f3)*np.sinc(np.pi*f3*t)**2) -
+         ((np.pi*f2)**2/(np.pi*f2 - np.pi*f1)*np.sinc(np.pi*f2*t)**2 -
+          (np.pi*f1)**2/(np.pi*f2 - np.pi*f1)*np.sinc(np.pi*f1*t)**2))
+    return(O)
+
+
+def ruger_vti(a1, B1, p1, a2, B2, p2, e1, d1, y1, e2, d2, y2, theta1):
     """
     Calculates the P-wave reflection coefficient (Rpp) as a function of
+    isotropy. Method uses the Ruger (1997) formulation.
     incidence angle theta for a anisotropic material with vertical tranvserse
-    isotropy. Method uses the Thomsen (1986) formulation.
     """
     theta2, thetas1, thetas2, p = snell(a1, a2, B1, B2, theta1)
     Z1 = p1*a1
     Z2 = p2*a2
-    u1 = p1*B1**2
-    u2 = p2*B2**2
+    u1 = p1*(B1**2)
+    u2 = p2*(B2**2)
     theta = (theta1 + theta2)/2
     a = (a1 + a2)/2
     B = (B1 + B2)/2
@@ -53,10 +87,12 @@ def avoa_vti(a1, B1, p1, a2, B2, p2, e1, d1, y1, e2, d2, y2, theta1):
     du = u2 - u1
     dd = d2 - d1
 
-    Rpp_iso = (1/2*(dZ / Z) + 1/2*(da/a - (2*B/a)**2*du/u)*np.sin(theta)**2 +
-               1/2*da/a*np.sin(theta)**2*np.tan(theta)**2)
+    Rpp_iso = (1/2*(dZ/Z) +
+               1/2*(da/a - (2*B/a)**2*du/u)*np.sin(theta)**2 +
+               1/2*(da/a)*np.sin(theta)**2*np.tan(theta)**2)
 
-    Rpp_aniso = dd/2*np.sin(theta)**2 + de/2*np.sin(theta)**2*np.tan(theta)**2
+    Rpp_aniso = ((dd/2)*np.sin(theta)**2 +
+                 (de/2)*np.sin(theta)**2*np.tan(theta)**2)
 
     Rpp = Rpp_iso + Rpp_aniso
 
@@ -318,7 +354,7 @@ def snell(vp1, vp2, vs1, vs2, theta1):
 def shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     """
     Calculate the AVO response for a PP reflection based on the Shuey
-    approximation to the Zoeppritz equations.
+    (two-term) approximation to the Zoeppritz equations.
 
     :param vp1: Compressional velocity of upper layer.
     :param vs1: Shear velocity of upper layer.
@@ -785,9 +821,9 @@ def main(*args):
         Rpps[n] = shuey(3000, 1500, 2000,
                         4000, 2000, 2200,
                         np.radians(thetas[n]))
-        Rpvti[n] = avoa_vti(3000, 1500, 2000,
+        Rpvti[n] = ruger_vti(3000, 1500, 2000,
                          4000, 2000, 2200,
-                         0, 0, 0,
+                         0., 0., 0. ,
                          0.1, 0.1, 0.1,
                          np.radians(thetas[n]))
 

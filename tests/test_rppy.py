@@ -229,10 +229,23 @@ def test_aki_richards():
 #    assert 0 == 1
 #
 #
-#def test_bortfeld():
-#    assert 0 == 1
-#
-#
+def test_bortfeld():
+    err = 0.01
+    Vp1 = 3000.
+    Vp2 = 4000.
+    Vs1 = 1500.
+    Vs2 = 2000.
+    p1 = 2000.
+    p2 = 2200.
+    theta1 = 32.
+
+    exp = 0.15469135
+
+    Rpp = rppy.aki_richards(Vp1, Vs1, p1, Vp2, Vs2, p2, np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
+
+
 def test_hashin_shtrikman():
     err = 0.005
     K = np.array([36, 75, 2.2])
