@@ -31,10 +31,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def phase_shift():
-    return(None)
-
-
 def ricker(f, t):
     """
     Calculates a standard zero-phase Ricker (Mexican Hat) wavelet for a given
@@ -77,6 +73,43 @@ def thomsen(C):
     y = (C[5][5] - C[3][3]) / (2*C[3][3])
 
     return(e, d, y)
+
+
+def ruger_vti(Vp1, Vs1, p1, e1, d1, y1,
+              Vp2, Vs2, p2, e2, d2, y2, theta1):
+    """
+    Computes the reflectivity response for a weakly anisotripic material with
+    vertically transverse isotropy using the equations of Thomsen (1992) and
+    Ruger (1997).
+    """
+    theta2, thetas1, thetas2, p = snell(Vp1, Vp2, Vs1, Vs2, theta1)
+    theta = (theta1 + theta2)/2
+
+    u1 = p1*Vs1**2
+    u2 = p2*Vs2**2
+    Z1 = p1*Vp1
+    Z2 = p2*Vp2
+
+    a = (Vp1 + Vp2)/2
+    B = (Vs1 / Vs2)/2
+    Z = (Z1 + Z2)/2
+    u = (u1 + u2)/2
+
+    dZ = Z2 - Z1
+    da = Vp2 - Vp1
+    du = u2 - u1
+    dd = d2 - d1
+    de = e2 - e1
+
+    Rpp_iso = ((1/2)*(dZ/Z) +
+               (1/2)*(da/a - (2*B/a)**2*(du/u))*np.sin(theta)**2 +
+               (1/2)*(da/a)*np.sin(theta)**2*np.tan(theta)**2)
+
+    Rpp_an = (dd/2)*np.sin(theta)**2 + (de/2)*np.sin(theta)**2*np.tan(theta)**2
+
+    Rpp = Rpp_iso + Rpp_an
+
+    return(Rpp)
 
 
 def exact_vti(V1, V2, V3, V4, p1, p2, theta1,
@@ -188,56 +221,17 @@ def exact_vti(V1, V2, V3, V4, p1, p2, theta1,
     return(Rpp)
 
 
-def ruger_vti(a1, B1, p1, a2, B2, p2, e1, d1, y1, e2, d2, y2, theta1):
-    """
-    Calculates the P-wave reflection coefficient (Rpp) as a function of
-    isotropy. Method uses the Ruger (1997) formulation.
-    incidence angle theta for a anisotropic material with vertical tranvserse
-    """
-    theta2, thetas1, thetas2, p = snell(a1, a2, B1, B2, theta1)
-    Z1 = p1*a1
-    Z2 = p2*a2
-    u1 = p1*(B1**2)
-    u2 = p2*(B2**2)
-    theta = (theta1 + theta2)/2
-    a = (a1 + a2)/2
-    B = (B1 + B2)/2
-    Z = (Z1 + Z2)/2
-    u = (u1 + u2)/2
-    de = e2 - e1
-    da = a2 - a1
-    dZ = Z2 - Z1
-    du = u2 - u1
-    dd = d2 - d1
-
-    Rpp_iso = (1/2*(dZ/Z) +
-               1/2*(da/a - (2*B/a)**2*du/u)*np.sin(theta)**2 +
-               1/2*(da/a)*np.sin(theta)**2*np.tan(theta)**2)
-
-    Rpp_aniso = ((dd/2)*np.sin(theta)**2 +
-                 (de/2)*np.sin(theta)**2*np.tan(theta)**2)
-
-    Rpp = Rpp_iso + Rpp_aniso
-
-    return(Rpp)
-
-
 def avoa_hti():
     """
     Calculate P-wave reflection coefficient (Rpp) as a function of incidence
     angle and azimuth for an anisotropic material with horizontal transverse
     isotropy.
     """
-    if Z == 0:
-        Rpp = 1/2*dZ/Z + 1/2*(sa/a - (2*B/a)**2*(du/u - 2*dy) + dd)
-    elif z == 90:
-        a = 1
-    else:
-        a = 1
-                    
+    return None
+
 
 def avoa_ortho():
-    a = 1
+    return None
 
 
 def ciz_shapiro(K0, Kdry, Kf, u0, udry, uf, phi, Kphi=None, uphi=None):
@@ -944,13 +938,12 @@ def main(*args):
         Rpps[n] = shuey(3000, 1500, 2000,
                         4000, 2000, 2200,
                         np.radians(thetas[n]))
-        Rpvti[n] = exact_vti(3000, 4000, 1500, 2000, 2000, 2200,
-                             np.radians(thetas[n]),
-                             C1_11, C1_13, C1_33, C1_55,
-                             C2_11, C2_13, C2_33, C2_55)
+        Rpvti[n] = ruger_vti(3000, 1500, 2000, 0.0, 0.0, 0.0,
+                             4000, 2000, 2200, 0.1, 0.1, 0.1,
+                             np.radians(thetas[n]))
 
     plt.plot(thetas, Rppz, thetas, Rppb, thetas, Rppak, thetas, Rpps, thetas, Rpvti)
-    plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey', 'Linear VTI'])
+    plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey', 'Ruger VTI'])
     plt.xlim([0, 50])
     plt.ylim([0.15, 0.25])
     plt.show()
