@@ -84,6 +84,7 @@ def ruger_vti(Vp1, Vs1, p1, e1, d1, y1,
     """
     theta2, thetas1, thetas2, p = snell(Vp1, Vp2, Vs1, Vs2, theta1)
     theta = (theta1 + theta2)/2
+    theta = theta1
 
     u1 = p1*Vs1**2
     u2 = p2*Vs2**2
@@ -91,7 +92,7 @@ def ruger_vti(Vp1, Vs1, p1, e1, d1, y1,
     Z2 = p2*Vp2
 
     a = (Vp1 + Vp2)/2
-    B = (Vs1 / Vs2)/2
+    B = (Vs1 + Vs2)/2
     Z = (Z1 + Z2)/2
     u = (u1 + u2)/2
 
