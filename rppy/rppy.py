@@ -1,24 +1,237 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#    rppy - a geophysical library for Python
-#    Copyright (C) 2015  Sean M. Contenti
+#   rppy - a geophysical library for Python
+#   Copyright (c) 2014, Sean M. Contenti
+#   All rights reserved.
 #
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation; either version 2 of the License, or
-#    (at your option) any later version.
+#   Redistribution and use in source and binary forms, with or without
+#   modification, are permitted provided that the following conditions are met:
 #
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+#   1. Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
 #
-#    You should have received a copy of the GNU General Public License along
-#    with this program; if not, write to the Free Software Foundation, Inc.,
-#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#   2. Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+#
+#   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+#   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+#   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+#   PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+#   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+#   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#   OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#   WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+
+def ricker(f, t):
+    """
+    Calculates a standard zero-phase Ricker (Mexican Hat) wavelet for a given
+    central frequency
+
+    :param t: Time axis of wavelet.
+    :param f: Central frequency of Ricker wavelet.
+    """
+    R = (1 - 2*np.pi**2*f**2*t**2)*np.exp(-np.pi**2*f**2*t**2)
+    return(R)
+
+
+def ormsby(t, f1, f2, f3, f4):
+    """
+    Calculates a standard zero-phase Ormsby wavelet for a given trapezoidal
+    amplitude spectrum
+
+    :param t: Time axis of wavelet.
+    :param f1: Low-frequency stop-band.
+    :param f2: Low-frequency corner.
+    :param f3: High-frequency corner.
+    :param f4: High-frequency stop-band.
+    """
+    O = (((np.pi*f4)**2/(np.pi*f4 - np.pi*f3)*np.sinc(np.pi*f4*t)**2 -
+          (np.pi*f3)**2/(np.pi*f4 - np.pi*f3)*np.sinc(np.pi*f3*t)**2) -
+         ((np.pi*f2)**2/(np.pi*f2 - np.pi*f1)*np.sinc(np.pi*f2*t)**2 -
+          (np.pi*f1)**2/(np.pi*f2 - np.pi*f1)*np.sinc(np.pi*f1*t)**2))
+    return(O)
+
+
+def thomsen(C):
+    """
+    Returns the Thomsen parameters that characterise transversely isotropic
+    materials, computed from the components of the elastic stiffness matrix C.
+    """
+
+    e = (C[0][0] - C[2][2]) / (2*C[2][2])
+    d = (((C[0][2] + C[3][3])**2 - (C[2][2] - C[3][3])**2) /
+         (2*C[2][2]*(C[2][2] - C[3][3])))
+    y = (C[5][5] - C[3][3]) / (2*C[3][3])
+
+    return(e, d, y)
+
+
+def ruger_vti(Vp1, Vs1, p1, e1, d1, y1,
+              Vp2, Vs2, p2, e2, d2, y2, theta1):
+    """
+    Computes the reflectivity response for a weakly anisotripic material with
+    vertically transverse isotropy using the equations of Thomsen (1992) and
+    Ruger (1997).
+    """
+    theta2, thetas1, thetas2, p = snell(Vp1, Vp2, Vs1, Vs2, theta1)
+    theta = (theta1 + theta2)/2
+
+    u1 = p1*Vs1**2
+    u2 = p2*Vs2**2
+    Z1 = p1*Vp1
+    Z2 = p2*Vp2
+
+    a = (Vp1 + Vp2)/2
+    B = (Vs1 / Vs2)/2
+    Z = (Z1 + Z2)/2
+    u = (u1 + u2)/2
+
+    dZ = Z2 - Z1
+    da = Vp2 - Vp1
+    du = u2 - u1
+    dd = d2 - d1
+    de = e2 - e1
+
+    Rpp_iso = ((1/2)*(dZ/Z) +
+               (1/2)*(da/a - (2*B/a)**2*(du/u))*np.sin(theta)**2 +
+               (1/2)*(da/a)*np.sin(theta)**2*np.tan(theta)**2)
+
+    Rpp_an = (dd/2)*np.sin(theta)**2 + (de/2)*np.sin(theta)**2*np.tan(theta)**2
+
+    Rpp = Rpp_iso + Rpp_an
+
+    return(Rpp)
+
+
+def exact_vti(V1, V2, V3, V4, p1, p2, theta1,
+              C1_11, C1_13, C1_33, C1_55,
+              C2_11, C2_13, C2_33, C2_55):
+    """
+    Returns the exact reflectivity coefficients for a VTI medium computed using
+    the relations of Daley and Hron (1977).
+
+    :param V1: P-velocity of upper medium.
+    :param V2: P-velocity of lower medium.
+    :param V3: S-velocity of upper medium.
+    :param V4: S-velocity of lower medium.
+    :param p1: Density of upper medium.
+    :param p2: Density of lower medium.
+    :param theta1: Incidence angle of incident P-wave in upper medium.
+    """
+
+    # TODO: There's gotta be a better way to implement these equation than
+    #       transcribing them from the 1977 paper. This is insane.
+    theta2, theta3, theta4, p = snell(V1, V2, V3, V4, theta1)
+
+    x = np.sin(theta1)
+    n = V1/V2
+    k1 = V3/V1
+    k2 = V4/V2
+
+    P = np.sqrt(1 - x**2)
+    Q = np.sqrt(1 - k1**2*x**2)
+    S = np.sqrt(1 - x**2/n**2)
+    R = np.sqrt(1 - k2**2*x**2/n**2)
+
+    # Upper medium parameters
+    A1_11 = C1_11 / p1
+    A1_33 = C1_33 / p1
+    A1_55 = C1_55 / p1
+    A1_13 = C1_13 / p1
+
+    A1_1 = 2*(A1_13 + A1_55)**2 - (A1_33 - A1_55)*(A1_11 + A1_33 - 2*A1_55)
+    A1_2 = (A1_11 + A1_33 - 2*A1_55)**2 - 4*(A1_13 + A1_55)**2
+    Q1 = np.sqrt((A1_33 - A1_55)**2 +
+                 2*A1_1*np.sin(theta1) +
+                 A1_2*np.sin(theta1))
+    l1 = np.sqrt(((Q1 - A1_33 + A1_55)/np.sin(theta1)**2 +
+                 (A1_11 + A1_33 - 2*A1_55))/(2*Q1))
+    m1 = np.sqrt(((Q1 - A1_11 + A1_55)/np.cos(theta1)**2 +
+                 (A1_11 + A1_33 - 2*A1_55))/(2*Q1))
+    l3 = np.sqrt(((Q1 - A1_33 + A1_55)/np.sin(theta3)**2 +
+                 (A1_11 + A1_33 - 2*A1_55))/(2*Q1))
+    m3 = np.sqrt(((Q1 - A1_11 + A1_55)/np.cos(theta3)**2 +
+                 (A1_11 + A1_33 - 2*A1_55))/(2*Q1))
+
+    d1 = l3*C1_33 - m3*C1_13
+    e1 = l1*C1_13 + (m1*C1_33 - l1*C1_13)*np.cos(theta1)**2
+    w1 = V1/V3*(1/(l1+m1))*(m3*np.cos(theta3)**2 - l3*np.sin(theta3)**2)
+    B1 = C1_55
+
+    # Lower medium parameters
+    A2_11 = C2_11 / p2
+    A2_33 = C2_33 / p2
+    A2_55 = C2_55 / p2
+    A2_55 = C2_55 / p2
+    A2_13 = C2_13 / p2
+
+    A2_1 = 2*(A2_13 + A2_55)**2 - (A2_33 - A2_55)*(A2_11 + A2_33 - 2*A2_55)
+    A2_2 = (A2_11 + A2_33 - 2*A2_55)**2 - 4*(A2_13 + A2_55)**2
+    Q2 = np.sqrt((A2_33 - A2_55)**2 +
+                 2*A2_1*np.sin(theta2) +
+                 A2_2*np.sin(theta2))
+    l2 = np.sqrt(((Q2 - A2_33 + A2_55)/np.sin(theta2)**2 +
+                 (A2_11 + A2_33 - 2*A2_55))/(2*Q2))
+    m2 = np.sqrt(((Q2 - A2_11 + A2_55)/np.cos(theta2)**2 +
+                 (A2_11 + A2_33 - 2*A2_55))/(2*Q2))
+    l4 = np.sqrt(((Q2 - A2_33 + A2_55)/np.sin(theta4)**2 +
+                 (A2_11 + A2_33 - 2*A2_55))/(2*Q2))
+    m4 = np.sqrt(((Q2 - A2_11 + A2_55)/np.cos(theta4)**2 +
+                 (A2_11 + A2_33 - 2*A2_55))/(2*Q2))
+
+    d2 = l4*C2_33 - m4*C2_13
+    e2 = V1/V2*(l2*C2_13 + (m2*C2_33 - l2*C2_13)*np.cos(theta2)**2)
+    w2 = V1/V4*(1/(l1+m1))*(m4*np.cos(theta4)**2 - l4*np.sin(theta4)**2)
+    B2 = C2_55
+
+    l = (l2+m2)/(l1+m1)
+
+    T1 = e2 - (e1*l2)/(n*l1)
+    T2 = B2*w2*k1*l3/m1 - B1*(w1*k2*l4)/(n*m1)
+    T3 = B2*w2 + B1*(k2*x**2*l4)/(n*m1)
+    T4 = e2*m3/l1 + (d1*x**2*l2)/(n*l1)
+    T5 = B1*(w1 + k1*x**2*l3/m1)
+    T6 = e2*m4/l1 + (d2*x**2*l2)/(n*l1)
+    T7 = B2*l - B1*m2/m1
+    T8 = d2*m3/l1 - d1*m4/l1
+    T9 = B2*(w2*m2/m1 + k2*x**2*l*l4/(n*m1))
+    T10 = e1*m3/l1 + d1*x**2
+    T11 = e1*m4/l1 + d2*x**2
+    T12 = B2*k1*x**2*l*l3/m1 + B1*w1*m2/m1
+
+    E1 = T1*T2*x**2
+    E2 = T3*T4*P*Q
+    E3 = T5*T6*P*R
+    E4 = T7*T8*x**2*P*Q*R*S
+    E5 = T9*T10*Q*S
+    E6 = T11*T12*R*S
+    D = E1 + E2 + E3 + E4 + E5 + E6
+
+    Rpp = (-E1 + E2 + E3 + E4 - E5 - E6)/D
+
+    return(Rpp)
+
+
+def avoa_hti():
+    """
+    Calculate P-wave reflection coefficient (Rpp) as a function of incidence
+    angle and azimuth for an anisotropic material with horizontal transverse
+    isotropy.
+    """
+    return None
+
+
+def avoa_ortho():
+    return None
 
 
 def ciz_shapiro(K0, Kdry, Kf, u0, udry, uf, phi, Kphi=None, uphi=None):
@@ -258,7 +471,7 @@ def snell(vp1, vp2, vs1, vs2, theta1):
 def shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     """
     Calculate the AVO response for a PP reflection based on the Shuey
-    approximation to the Zoeppritz equations.
+    (three-term) approximation to the Zoeppritz equations.
 
     :param vp1: Compressional velocity of upper layer.
     :param vs1: Shear velocity of upper layer.
@@ -277,11 +490,11 @@ def shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     vp = (vp1 + vp2) / 2.
     theta = (theta1 + theta2)/2
 
-    R0 = 0.5*(dvp/vp + drho/rho)
-    G = 0.5*dvp/vp - 2*vs**2/vp**2*(drho/rho + 2*dvs/vs)
-    F = 0.5*dvp/vp
+    A = 0.5*(dvp/vp + drho/rho)
+    B = 0.5*dvp/vp - 2*vs**2/vp**2*(drho/rho + 2*dvs/vs)
+    C = 0.5*dvp/vp
 
-    Rpp = R0 + G*np.sin(theta)**2 + F*(np.tan(theta)**2 - np.sin(theta)**2)
+    Rpp = A + B*np.sin(theta)**2 + C*(np.tan(theta)**2 - np.sin(theta)**2)
 
     return(Rpp)
 
@@ -705,6 +918,7 @@ def main(*args):
     Rppb = np.empty(np.shape(thetas))
     Rppak = np.empty(np.shape(thetas))
     Rpps = np.empty(np.shape(thetas))
+    Rpvti = np.empty(np.shape(thetas))
 
     plt.figure(2)
     for n in range(np.size(thetas)):
@@ -721,15 +935,17 @@ def main(*args):
                                 2000, 4000,
                                 2000, 2200,
                                 np.radians(thetas[n]))
-        Rpps[n] = shuey(3000, 1500,
-                        2000, 4000,
-                        2000, 2200,
+        Rpps[n] = shuey(3000, 1500, 2000,
+                        4000, 2000, 2200,
                         np.radians(thetas[n]))
+        Rpvti[n] = ruger_vti(3000, 1500, 2000, 0.0, 0.0, 0.0,
+                             4000, 2000, 2200, 0.1, 0.1, 0.1,
+                             np.radians(thetas[n]))
 
-    plt.plot(thetas, Rppz, thetas, Rppb, thetas, Rppak, thetas, Rpps)
-    plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey'])
+    plt.plot(thetas, Rppz, thetas, Rppb, thetas, Rppak, thetas, Rpps, thetas, Rpvti)
+    plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey', 'Ruger VTI'])
     plt.xlim([0, 50])
-    plt.ylim([0, 0.5])
+    plt.ylim([0.15, 0.25])
     plt.show()
 
     t = np.arange(0, 15, 0.1)

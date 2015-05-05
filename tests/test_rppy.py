@@ -1,24 +1,88 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#    rppy - a geophysical library for Python
-#    Copyright (C) 2015  Sean M. Contenti
+#   rppy - a geophysical library for Python
+#   Copyright (c) 2014, Sean M. Contenti
+#   All rights reserved.
 #
-#    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation; either version 2 of the License, or
-#    (at your option) any later version.
+#   Redistribution and use in source and binary forms, with or without
+#   modification, are permitted provided that the following conditions are met:
 #
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+#   1. Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
 #
-#    You should have received a copy of the GNU General Public License along
-#    with this program; if not, write to the Free Software Foundation, Inc.,
-#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+#   2. Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+#
+#   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+#   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+#   TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+#   PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+#   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+#   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#   OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#   WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#   OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 
 from rppy import rppy
 import numpy as np
+
+
+def test_thomsen():
+    err = 0.05
+    C = np.zeros(shape=(6, 6))
+    C[0][0] = 3.06
+    C[1][1] = 0.64
+    C[2][2] = 2.22
+    C[3][3] = 0.91
+    C[0][2] = -0.68
+    C[5][5] = 1.21
+
+    eexp = 0.19
+    yexp = 0.17
+
+    e, d, y = rppy.thomsen(C)
+
+    assert np.abs(e - eexp)/eexp < err
+    assert np.abs(y - yexp)/yexp < err
+
+
+#def test_exact_vti():
+#    err = 0.005
+#    Vp1 = 3000
+#    Vp2 = 4000
+#    Vs1 = 1500
+#    Vs2 = 2000
+#    p1 = 2000
+#    p2 = 2200
+#    theta1 = 32
+#    e1 = 0
+#    d1 = 0
+#    y1 = 0
+#    e2 = 0.1
+#    d2 = 0.1
+#    y2 = 0.1
+#
+#    exp = 0
+#
+#    Rpp = rppy.ruger_vti(Vp1, Vs1, p1,
+#                         Vp2, Vs2, p2,
+#                         e1, d1, y1,
+#                         e2, d2, y2,
+#                         np.radians(theta1))
+#
+#    assert np.abs(Rpp - exp)/exp < err
+
+
+#def test_avoa_hti():
+#    assert 1 == 0
+#
+#
+#def test_avoa_ortho():
+#    assert 1 == 0
 
 
 def test_gassmann():
@@ -169,22 +233,61 @@ def test_snell():
     assert np.abs(np.rad2deg(thetas2) - thetas2E) < err
 
 
-#def test_shuey():
-#    assert 0 == 1
-#
-#
-#def test_aki_richards():
-#    assert 0 == 1
-#
-#
+def test_shuey():
+    err = 0.005
+    Vp1 = 3000
+    Vp2 = 4000
+    Vs1 = 1500
+    Vs2 = 2000
+    p1 = 2000
+    p2 = 2200
+    theta1 = 32
+
+    exp = 0.151
+
+    Rpp = rppy.shuey(Vp1, Vs1, p1, Vp2, Vs2, p2, np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
+
+
+def test_aki_richards():
+    err = 0.05
+    Vp1 = 3000
+    Vp2 = 4000
+    Vs1 = 1500
+    Vs2 = 2000
+    p1 = 2000
+    p2 = 2200
+    theta1 = 32
+
+    exp = 0.15351
+
+    Rpp = rppy.aki_richards(Vp1, Vs1, p1, Vp2, Vs2, p2, np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
+
+
 #def test_zoeppritz():
 #    assert 0 == 1
-#
-#
-#def test_bortfeld():
-#    assert 0 == 1
-#
-#
+
+
+def test_bortfeld():
+    err = 0.01
+    Vp1 = 3000.
+    Vp2 = 4000.
+    Vs1 = 1500.
+    Vs2 = 2000.
+    p1 = 2000.
+    p2 = 2200.
+    theta1 = 32.
+
+    exp = 0.15469135
+
+    Rpp = rppy.bortfeld(Vp1, Vs1, p1, Vp2, Vs2, p2, np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
+
+
 def test_hashin_shtrikman():
     err = 0.005
     K = np.array([36, 75, 2.2])

@@ -13,7 +13,7 @@ install:
 # command to run tests, e.g. python setup.py test
 script:
   - coverage run --source rppy -m py.test
-  - coverage report
+  - coverage report --omit=rppy/las.py
 
 after_success:
   - coveralls
