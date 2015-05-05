@@ -471,7 +471,7 @@ def snell(vp1, vp2, vs1, vs2, theta1):
 def shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     """
     Calculate the AVO response for a PP reflection based on the Shuey
-    (two-term) approximation to the Zoeppritz equations.
+    (three-term) approximation to the Zoeppritz equations.
 
     :param vp1: Compressional velocity of upper layer.
     :param vs1: Shear velocity of upper layer.
@@ -490,11 +490,11 @@ def shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     vp = (vp1 + vp2) / 2.
     theta = (theta1 + theta2)/2
 
-    R0 = 0.5*(dvp/vp + drho/rho)
+    A = 0.5*(dvp/vp + drho/rho)
     B = 0.5*dvp/vp - 2*vs**2/vp**2*(drho/rho + 2*dvs/vs)
     C = 0.5*dvp/vp
 
-    Rpp = R0 + B*np.sin(theta)**2 + C*(np.tan(theta)**2 - np.sin(theta)**2)
+    Rpp = A + B*np.sin(theta)**2 + C*(np.tan(theta)**2 - np.sin(theta)**2)
 
     return(Rpp)
 
@@ -502,8 +502,7 @@ def shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
 def aki_richards(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     """
     Calculate the AVO response for a PP reflection based on the Aki-Richards
-    approximation to the Zoeppritz equations. This implementation uses the
-    intercept-gradient-curvature formulation (A, B, and C).
+    approximation to the Zoeppritz equations.
 
     :param vp1: Compressional velocity of upper layer.
     :param vs1: Shear velocity of upper layer.
@@ -522,14 +521,8 @@ def aki_richards(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     vp = (vp1 + vp2) / 2.
     vs = (vs1 + vs2) / 2.
 
-    A = 0.5*(dvp/vp + drho/rho)
-    B = 0.5*dvp/vp - 2*vs**2/vp**2*(2*dvs/vs + drho/rho)
-    C = 0.5*dvp/vp
-
-    Rpp = A + B*np.sin(theta)**2 + C*(np.tan(theta)**2 - np.sin(theta)**2)
-
-    # Rpp = (0.5 * (1 - 4 * p**2 * vs**2) * (drho / rho) +
-    #       (dvp / (2 * np.cos(theta)**2 * vp)) - (4 * p**2 * vs**2 * dvs / vs))
+    Rpp = (0.5 * (1 - 4 * p**2 * vs**2) * (drho / rho) +
+           (dvp / (2 * np.cos(theta)**2 * vp)) - (4 * p**2 * vs**2 * dvs / vs))
 
     return(Rpp)
 

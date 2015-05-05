@@ -260,7 +260,7 @@ def test_aki_richards():
     p2 = 2200
     theta1 = 32
 
-    exp = 0.151673425
+    exp = 0.15351
 
     Rpp = rppy.aki_richards(Vp1, Vs1, p1, Vp2, Vs2, p2, np.radians(theta1))
 
