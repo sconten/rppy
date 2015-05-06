@@ -33,9 +33,6 @@ import matplotlib.pyplot as plt
 
 def main(*args):
     from . import util
-    from . import fluid
-    from . import las
-    from . import moduli
     from . import reflectivity
     from . import media
 
