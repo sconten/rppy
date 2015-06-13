@@ -105,36 +105,43 @@ def zoeppritz(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     # Need reflection and refraction angles for Zoeppritz
     theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
 
-    M = np.array([
-        [-np.sin(theta1), -np.cos(thetas1), np.sin(theta2), np.cos(thetas2)],
-        [np.cos(theta1), -np.sin(thetas1), np.cos(theta2), -np.sin(thetas2)],
-        [2.*rho1*vs1*np.sin(thetas1)*np.cos(theta1),
-         rho2*vs1*(1.-2.*np.sin(thetas2)**2),
-         2.*rho2*vs2*np.sin(thetas2)*np.cos(theta2),
-         rho2*vs2*(1.-2.*np.sin(thetas2)**2)],
-        [-rho1*vp1*(1.-2.*np.sin(thetas1)**2),
-         rho1*vs1*np.sin(2.*thetas1),
-         rho2*vp2*(1.-2.*np.sin(thetas2)**2),
-         -rho2*vs2*np.sin(2.*thetas2)]])
+    Rpp = np.zeros(np.shape(theta1))
+    Rps = np.zeros(np.shape(theta1))
+    Tpp = np.zeros(np.shape(theta1))
+    Tps = np.zeros(np.shape(theta1))
 
-    N = np.array([
-        [np.sin(theta1), np.cos(thetas1), -np.sin(theta2), -np.cos(thetas2)],
-        [np.cos(theta1), -np.sin(thetas1), np.cos(theta2), -np.sin(thetas2)],
-        [2.*rho1*vs1*np.sin(thetas1)*np.cos(theta1),
-         rho2*vs1*(1.-2.*np.sin(thetas2)**2),
-         2.*rho2*vs2*np.sin(thetas2)*np.cos(theta2),
-         rho2*vs2*(1.-2.*np.sin(thetas2)**2)],
-        [rho1*vp1*(1.-2.*np.sin(thetas1)**2),
-         -rho1*vs1*np.sin(2.*thetas1),
-         -rho2*vp2*(1.-2.*np.sin(thetas2)**2),
-         rho2*vs2*np.sin(2.*thetas2)]])
+    for n in np.arange(0, len(theta1)):
 
-    Z = np.dot(np.linalg.inv(M), N)
+        M = np.array([
+            [-np.sin(theta1[n]), -np.cos(thetas1[n]), np.sin(theta2[n]), np.cos(thetas2[n])],
+            [np.cos(theta1[n]), -np.sin(thetas1[n]), np.cos(theta2[n]), -np.sin(thetas2[n])],
+            [2.*rho1*vs1*np.sin(thetas1[n])*np.cos(theta1[n]),
+             rho2*vs1*(1.-2.*np.sin(thetas2[n])**2),
+             2.*rho2*vs2*np.sin(thetas2[n])*np.cos(theta2[n]),
+             rho2*vs2*(1.-2.*np.sin(thetas2[n])**2)],
+            [-rho1*vp1*(1.-2.*np.sin(thetas1[n])**2),
+             rho1*vs1*np.sin(2.*thetas1[n]),
+             rho2*vp2*(1.-2.*np.sin(thetas2[n])**2),
+             -rho2*vs2*np.sin(2.*thetas2[n])]])
 
-    Rpp = Z[0][0]
-    Rps = Z[1][0]
-    Tpp = Z[2][0]
-    Tps = Z[3][0]
+        N = np.array([
+            [np.sin(theta1[n]), np.cos(thetas1[n]), -np.sin(theta2[n]), -np.cos(thetas2[n])],
+            [np.cos(theta1[n]), -np.sin(thetas1[n]), np.cos(theta2[n]), -np.sin(thetas2[n])],
+            [2.*rho1*vs1*np.sin(thetas1[n])*np.cos(theta1[n]),
+             rho2*vs1*(1.-2.*np.sin(thetas2[n])**2),
+             2.*rho2*vs2*np.sin(thetas2[n])*np.cos(theta2[n]),
+             rho2*vs2*(1.-2.*np.sin(thetas2[n])**2)],
+            [rho1*vp1*(1.-2.*np.sin(thetas1[n])**2),
+             -rho1*vs1*np.sin(2.*thetas1[n]),
+             -rho2*vp2*(1.-2.*np.sin(thetas2[n])**2),
+             rho2*vs2*np.sin(2.*thetas2[n])]])
+
+        Z = np.dot(np.linalg.inv(M), N)
+
+        Rpp[n] = Z[0][0]
+        Rps[n] = Z[1][0]
+        Tpp[n] = Z[2][0]
+        Tps[n] = Z[3][0]
 
     return(Rpp, Rps, Tpp, Tps)
 
@@ -174,21 +181,27 @@ def snell(vp1, vp2, vs1, vs2, theta1):
     """
     theta_crit_1 = np.arcsin(vp1/vp2)
     theta_crit_2 = np.arcsin(vp1/vs2)
-    p = np.sin(theta1)/vp1          # Ray parameter
-    if theta1 >= theta_crit_1:
-        theta2 = None
-        thetas1 = np.arcsin(p*vs1)  # S-wave reflection
-        thetas2 = np.arcsin(p*vs2)  # S-wave refraction
-    elif theta1 >= theta_crit_2:
-        theta2 = None
-        thetas1 = np.arcsin(p*vs1)  # S-wave reflection
-        thetas2 = None              # S-wave refraction
-    else:
-        theta2 = np.arcsin(p*vp2)   # P-wave refraction
-        thetas1 = np.arcsin(p*vs1)  # S-wave reflection
-        thetas2 = np.arcsin(p*vs2)  # S-wave refraction
 
-        return(theta2, thetas1, thetas2, p)
+    p = np.full(np.shape(theta1), None)
+    theta2 = np.full(np.shape(theta1), None)
+    thetas1 = np.full(np.shape(theta1), None)
+    thetas2 = np.full(np.shape(theta1), None)
+
+    for n in np.arange(0, len(theta1)):
+        p[n] = np.sin(theta1[n])/vp1        # Ray parameter
+        thetas1[n] = np.arcsin(p[n]*vs1)    # S-wave reflection
+
+        if theta1[n] >= theta_crit_1:
+            theta2[n] = None
+            thetas2[n] = np.arcsin(p[n]*vs2)    # S-wave refraction
+        elif theta1[n] >= theta_crit_2:
+            theta2[n] = None
+            thetas2[n] = None                   # S-wave refraction
+        else:
+            theta2[n] = np.arcsin(p[n]*vp2)     # P-wave refraction
+            thetas2[n] = np.arcsin(p[n]*vs2)    # S-wave refraction
+
+    return(theta2, thetas1, thetas2, p)
 
 
 def thomsen(C):

@@ -30,6 +30,24 @@
 import numpy as np
 
 
+def han_eberhart_phillips(phi, C, Pe):
+    """
+    Calculate the Eberhart-Phillips multivariate version of Han's velocity -
+    porosity relation for water-saturated shaley sandstones.
+
+    :param phi: Porosity [frac.]
+    :param C: Vshale [frac.]
+    :param Pe: Effective pressure [Mpa]
+    """
+
+    Vp = (5.77 - 6.94*phi - 1.73*np.sqrt(C) +
+          0.446*(0.01*Pe - np.exp(-16.7*0.01*Pe)))
+    Vs = (3.70 - 4.94*phi - 1.57*np.sqrt(C) +
+          0.361*(0.01*Pe - np.exp(-16.7*0.01*Pe)))
+
+    return(Vp, Vs)
+
+
 def kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=None):
     """
     Calculate the effective bulk and shear moduli of a background medium after

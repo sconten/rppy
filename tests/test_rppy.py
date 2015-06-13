@@ -218,7 +218,7 @@ def test_snell():
     vs1 = 1725
     vp2 = 3800
     vs2 = 1900
-    theta1 = 30
+    theta1 = np.array([30])
 
     theta2E = 49.46
     thetas1E = 20.18
@@ -241,7 +241,7 @@ def test_shuey():
     Vs2 = 2000
     p1 = 2000
     p2 = 2200
-    theta1 = 32
+    theta1 = np.array([32])
 
     exp = 0.151
 
@@ -260,7 +260,7 @@ def test_aki_richards():
     Vs2 = 2000
     p1 = 2000
     p2 = 2200
-    theta1 = 32
+    theta1 = np.array([32])
 
     exp = 0.15351
 
@@ -283,7 +283,7 @@ def test_bortfeld():
     Vs2 = 2000.
     p1 = 2000.
     p2 = 2200.
-    theta1 = 32.
+    theta1 = np.array([32])
 
     exp = 0.15469135
 
