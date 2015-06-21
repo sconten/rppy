@@ -271,8 +271,27 @@ def test_aki_richards():
     assert np.abs(Rpp - exp)/exp < err
 
 
-#def test_zoeppritz():
-#    assert 0 == 1
+def test_zoeppritz():
+    # Giving Zoeppritz more leeway because I'm checking against the
+    # Aki-Richards approximation. Change back to usual 5% once I get good
+    # exact values
+    err = 0.1
+    Vp1 = 3000
+    Vp1 = 3000
+    Vp2 = 4000
+    Vs1 = 1500
+    Vs2 = 2000
+    p1 = 2000
+    p2 = 2200
+    theta1 = np.array([32])
+
+    exp = 0.15351
+
+    Rpp = rppy.reflectivity.zoeppritz(Vp1, Vs1, p1,
+                                      Vp2, Vs2, p2,
+                                      np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
 
 
 def test_bortfeld():

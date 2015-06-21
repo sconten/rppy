@@ -113,8 +113,10 @@ def zoeppritz(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     for n in np.arange(0, len(theta1)):
 
         M = np.array([
-            [-np.sin(theta1[n]), -np.cos(thetas1[n]), np.sin(theta2[n]), np.cos(thetas2[n])],
-            [np.cos(theta1[n]), -np.sin(thetas1[n]), np.cos(theta2[n]), -np.sin(thetas2[n])],
+            [-np.sin(theta1[n]), -np.cos(thetas1[n]),
+             np.sin(theta2[n]), np.cos(thetas2[n])],
+            [np.cos(theta1[n]), -np.sin(thetas1[n]),
+             np.cos(theta2[n]), -np.sin(thetas2[n])],
             [2.*rho1*vs1*np.sin(thetas1[n])*np.cos(theta1[n]),
              rho2*vs1*(1.-2.*np.sin(thetas2[n])**2),
              2.*rho2*vs2*np.sin(thetas2[n])*np.cos(theta2[n]),
@@ -125,8 +127,10 @@ def zoeppritz(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
              -rho2*vs2*np.sin(2.*thetas2[n])]])
 
         N = np.array([
-            [np.sin(theta1[n]), np.cos(thetas1[n]), -np.sin(theta2[n]), -np.cos(thetas2[n])],
-            [np.cos(theta1[n]), -np.sin(thetas1[n]), np.cos(theta2[n]), -np.sin(thetas2[n])],
+            [np.sin(theta1[n]), np.cos(thetas1[n]),
+             -np.sin(theta2[n]), -np.cos(thetas2[n])],
+            [np.cos(theta1[n]), -np.sin(thetas1[n]),
+             np.cos(theta2[n]), -np.sin(thetas2[n])],
             [2.*rho1*vs1*np.sin(thetas1[n])*np.cos(theta1[n]),
              rho2*vs1*(1.-2.*np.sin(thetas2[n])**2),
              2.*rho2*vs2*np.sin(thetas2[n])*np.cos(theta2[n]),
@@ -143,7 +147,7 @@ def zoeppritz(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
         Tpp[n] = Z[2][0]
         Tps[n] = Z[3][0]
 
-    return(Rpp, Rps, Tpp, Tps)
+    return(Rpp)
 
 
 def bortfeld(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
