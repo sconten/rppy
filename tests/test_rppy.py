@@ -27,7 +27,7 @@
 #   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-from rppy import rppy
+import rppy
 import numpy as np
 
 
@@ -44,37 +44,33 @@ def test_thomsen():
     eexp = 0.19
     yexp = 0.17
 
-    e, d, y = rppy.thomsen(C)
+    e, d, y = rppy.reflectivity.thomsen(C)
 
     assert np.abs(e - eexp)/eexp < err
     assert np.abs(y - yexp)/yexp < err
 
 
-#def test_exact_vti():
-#    err = 0.005
-#    Vp1 = 3000
-#    Vp2 = 4000
-#    Vs1 = 1500
-#    Vs2 = 2000
-#    p1 = 2000
-#    p2 = 2200
-#    theta1 = 32
-#    e1 = 0
-#    d1 = 0
-#    y1 = 0
-#    e2 = 0.1
-#    d2 = 0.1
-#    y2 = 0.1
-#
-#    exp = 0
-#
-#    Rpp = rppy.ruger_vti(Vp1, Vs1, p1,
-#                         Vp2, Vs2, p2,
-#                         e1, d1, y1,
-#                         e2, d2, y2,
-#                         np.radians(theta1))
-#
-#    assert np.abs(Rpp - exp)/exp < err
+def test_ruger_vti():
+    err = 0.05
+    Vp1 = 2900
+    Vp2 = 3100
+    Vs1 = 1800
+    Vs2 = 1850
+    p1 = 2180
+    p2 = 2200
+    theta1 = np.array([20])
+    e1 = 0
+    d1 = 0
+    e2 = 0.1
+    d2 = 0.2
+
+    exp = 0.05
+
+    Rpp = rppy.reflectivity.ruger_vti(Vp1, Vs1, p1, e1, d1,
+                                      Vp2, Vs2, p2, e2, d2,
+                                      np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
 
 
 #def test_avoa_hti():
@@ -95,13 +91,13 @@ def test_gassmann():
     # Saturate with gas
     Kfout = 0.133
     exp = 12.29
-    Kgas = rppy.gassmann(K0, Kin, Kfin, Kfout, phi)
+    Kgas = rppy.fluid.gassmann(K0, Kin, Kfin, Kfout, phi)
     assert np.abs(Kgas - exp)/exp < err
 
     # Saturate with brine
     Kfout = 3.013
     exp = 17.6
-    Kbr = rppy.gassmann(K0, Kin, Kfin, Kfout, phi)
+    Kbr = rppy.fluid.gassmann(K0, Kin, Kfin, Kfout, phi)
     assert np.abs(Kbr - exp)/exp < err
 
 
@@ -117,7 +113,7 @@ def test_kuster_toksoz():
     si = 'sphere'
     Kkt_exp = 36.4
     ukt_exp = 43.088
-    em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
+    em = rppy.media.kuster_toksoz(Km, um, Ki, ui, xi, si)
     assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
     assert np.abs(ukt_exp - em['u'])/ukt_exp < err
 
@@ -125,7 +121,7 @@ def test_kuster_toksoz():
     si = 'needle'
     Kkt_exp = 36.324
     ukt_exp = 42.894
-    em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si)
+    em = rppy.media.kuster_toksoz(Km, um, Ki, ui, xi, si)
     assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
     assert np.abs(ukt_exp - em['u'])/ukt_exp < err
 
@@ -134,7 +130,7 @@ def test_kuster_toksoz():
     alpha = 0.01
     Kkt_exp = 21.612
     ukt_exp = 29.323
-    em = rppy.kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=alpha)
+    em = rppy.media.kuster_toksoz(Km, um, Ki, ui, xi, si, alpha=alpha)
     print(em['K'])
     print(em['u'])
     assert np.abs(Kkt_exp - em['K'])/Kkt_exp < err
@@ -147,7 +143,7 @@ def test_tuning_wedge():
     f0 = 90
     t = 5
     RppT = 1.406
-    assert np.abs(rppy.tuning_wedge(Rpp, f0, t) - RppT)/RppT < err
+    assert np.abs(rppy.util.tuning_wedge(Rpp, f0, t) - RppT)/RppT < err
 
 
 def test_batzle_wang_brine():
@@ -160,7 +156,7 @@ def test_batzle_wang_brine():
     expected_rho = 1.0186679
     expected_Vp = 1535.572
 
-    fluid = rppy.batzle_wang(P, T, 'brine', S=S)
+    fluid = rppy.fluid.batzle_wang(P, T, 'brine', S=S)
 
     assert np.abs(fluid['rho'] - expected_rho)/expected_rho < err
     assert np.abs(fluid['Vp'] - expected_Vp)/expected_Vp < err
@@ -178,7 +174,7 @@ def test_batzle_wang_oil():
     expected_rho = 0.9211315
     expected_Vp = 1469.1498
 
-    fluid = rppy.batzle_wang(P, T, 'oil', G=G, api=api, Rg=Rg)
+    fluid = rppy.fluid.batzle_wang(P, T, 'oil', G=G, api=api, Rg=Rg)
 
     assert np.abs(fluid['rho'] - expected_rho)/expected_rho < err
     assert np.abs(fluid['Vp'] - expected_Vp)/expected_Vp < err
@@ -194,7 +190,7 @@ def test_batzle_wang_gas():
     expected_rho = 0.02332698
     expected_K = 4.264937
 
-    fluid = rppy.batzle_wang(P, T, 'gas', G=G)
+    fluid = rppy.fluid.batzle_wang(P, T, 'gas', G=G)
 
     assert np.abs(fluid['rho'] - expected_rho)/expected_rho < err
     assert np.abs(fluid['K'] - expected_K)/expected_K < err
@@ -206,7 +202,7 @@ def test_batzle_wang_gas():
     expected_rho = 0.060788613
     expected_K = 25.39253
 
-    fluid = rppy.batzle_wang(P, T, 'gas', G=G)
+    fluid = rppy.fluid.batzle_wang(P, T, 'gas', G=G)
 
     assert np.abs(fluid['rho'] - expected_rho)/expected_rho < err
     assert np.abs(fluid['K'] - expected_K)/expected_K < err
@@ -218,15 +214,15 @@ def test_snell():
     vs1 = 1725
     vp2 = 3800
     vs2 = 1900
-    theta1 = 30
+    theta1 = np.array([30])
 
     theta2E = 49.46
     thetas1E = 20.18
     thetas2E = 22.33
 
-    theta2, thetas1, thetas2, p = rppy.snell(vp1, vp2,
-                                             vs1, vs2,
-                                             np.radians(theta1))
+    theta2, thetas1, thetas2, p = rppy.reflectivity.snell(vp1, vp2,
+                                                          vs1, vs2,
+                                                          np.radians(theta1))
 
     assert np.abs(np.rad2deg(theta2) - theta2E) < err
     assert np.abs(np.rad2deg(thetas1) - thetas1E) < err
@@ -241,11 +237,13 @@ def test_shuey():
     Vs2 = 2000
     p1 = 2000
     p2 = 2200
-    theta1 = 32
+    theta1 = np.array([32])
 
     exp = 0.151
 
-    Rpp = rppy.shuey(Vp1, Vs1, p1, Vp2, Vs2, p2, np.radians(theta1))
+    Rpp = rppy.reflectivity.shuey(Vp1, Vs1, p1,
+                                  Vp2, Vs2, p2,
+                                  np.radians(theta1))
 
     assert np.abs(Rpp - exp)/exp < err
 
@@ -258,17 +256,38 @@ def test_aki_richards():
     Vs2 = 2000
     p1 = 2000
     p2 = 2200
-    theta1 = 32
+    theta1 = np.array([32])
 
     exp = 0.15351
 
-    Rpp = rppy.aki_richards(Vp1, Vs1, p1, Vp2, Vs2, p2, np.radians(theta1))
+    Rpp = rppy.reflectivity.aki_richards(Vp1, Vs1, p1,
+                                         Vp2, Vs2, p2,
+                                         np.radians(theta1))
 
     assert np.abs(Rpp - exp)/exp < err
 
 
-#def test_zoeppritz():
-#    assert 0 == 1
+def test_zoeppritz():
+    # Giving Zoeppritz more leeway because I'm checking against the
+    # Aki-Richards approximation. Change back to usual 5% once I get good
+    # exact values
+    err = 0.1
+    Vp1 = 3000
+    Vp1 = 3000
+    Vp2 = 4000
+    Vs1 = 1500
+    Vs2 = 2000
+    p1 = 2000
+    p2 = 2200
+    theta1 = np.array([32])
+
+    exp = 0.15351
+
+    Rpp = rppy.reflectivity.zoeppritz(Vp1, Vs1, p1,
+                                      Vp2, Vs2, p2,
+                                      np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
 
 
 def test_bortfeld():
@@ -279,11 +298,13 @@ def test_bortfeld():
     Vs2 = 2000.
     p1 = 2000.
     p2 = 2200.
-    theta1 = 32.
+    theta1 = np.array([32])
 
     exp = 0.15469135
 
-    Rpp = rppy.bortfeld(Vp1, Vs1, p1, Vp2, Vs2, p2, np.radians(theta1))
+    Rpp = rppy.reflectivity.bortfeld(Vp1, Vs1, p1,
+                                     Vp2, Vs2, p2,
+                                     np.radians(theta1))
 
     assert np.abs(Rpp - exp)/exp < err
 
@@ -299,7 +320,7 @@ def test_hashin_shtrikman():
     uue = 24.6
     ule = 0
 
-    Ku, Kl, uu, ul = rppy.hashin_shtrikman(K, u, f)
+    Ku, Kl, uu, ul = rppy.media.hashin_shtrikman(K, u, f)
 
     assert np.abs(Ku - Kue)/Kue < err
     assert np.abs(Kl - Kle)/Kue < err
@@ -320,12 +341,12 @@ def test_youngs():
     L = 40.38
     expected = E
 
-    assert np.abs(rppy.youngs(v=v, u=u) - expected)/expected < err
-    assert np.abs(rppy.youngs(v=v, K=K) - expected)/expected < err
-    assert np.abs(rppy.youngs(v=v, L=L) - expected)/expected < err
-    assert np.abs(rppy.youngs(u=u, K=K) - expected)/expected < err
-    assert np.abs(rppy.youngs(u=u, L=L) - expected)/expected < err
-    assert np.abs(rppy.youngs(K=K, L=L) - expected)/expected < err
+    assert np.abs(rppy.moduli.youngs(v=v, u=u) - expected)/expected < err
+    assert np.abs(rppy.moduli.youngs(v=v, K=K) - expected)/expected < err
+    assert np.abs(rppy.moduli.youngs(v=v, L=L) - expected)/expected < err
+    assert np.abs(rppy.moduli.youngs(u=u, K=K) - expected)/expected < err
+    assert np.abs(rppy.moduli.youngs(u=u, L=L) - expected)/expected < err
+    assert np.abs(rppy.moduli.youngs(K=K, L=L) - expected)/expected < err
 
 
 def test_poissons():
@@ -337,12 +358,12 @@ def test_poissons():
     L = 40.38
     expected = v
 
-    assert np.abs(rppy.poissons(E=E, u=u) - expected)/expected < err
-    assert np.abs(rppy.poissons(E=E, K=K) - expected)/expected < err
-    assert np.abs(rppy.poissons(E=E, L=L) - expected)/expected < err
-    assert np.abs(rppy.poissons(u=u, K=K) - expected)/expected < err
-    assert np.abs(rppy.poissons(u=u, L=L) - expected)/expected < err
-    assert np.abs(rppy.poissons(K=K, L=L) - expected)/expected < err
+    assert np.abs(rppy.moduli.poissons(E=E, u=u) - expected)/expected < err
+    assert np.abs(rppy.moduli.poissons(E=E, K=K) - expected)/expected < err
+    assert np.abs(rppy.moduli.poissons(E=E, L=L) - expected)/expected < err
+    assert np.abs(rppy.moduli.poissons(u=u, K=K) - expected)/expected < err
+    assert np.abs(rppy.moduli.poissons(u=u, L=L) - expected)/expected < err
+    assert np.abs(rppy.moduli.poissons(K=K, L=L) - expected)/expected < err
 
 
 def test_shear():
@@ -354,12 +375,12 @@ def test_shear():
     L = 40.38
     expected = u
 
-    assert np.abs(rppy.shear(E=E, v=v) - expected)/expected < err
-    assert np.abs(rppy.shear(E=E, K=K) - expected)/expected < err
-    assert np.abs(rppy.shear(E=E, L=L) - expected)/expected < err
-    assert np.abs(rppy.shear(v=v, K=K) - expected)/expected < err
-    assert np.abs(rppy.shear(v=v, L=L) - expected)/expected < err
-    assert np.abs(rppy.shear(K=K, L=L) - expected)/expected < err
+    assert np.abs(rppy.moduli.shear(E=E, v=v) - expected)/expected < err
+    assert np.abs(rppy.moduli.shear(E=E, K=K) - expected)/expected < err
+    assert np.abs(rppy.moduli.shear(E=E, L=L) - expected)/expected < err
+    assert np.abs(rppy.moduli.shear(v=v, K=K) - expected)/expected < err
+    assert np.abs(rppy.moduli.shear(v=v, L=L) - expected)/expected < err
+    assert np.abs(rppy.moduli.shear(K=K, L=L) - expected)/expected < err
 
 
 def test_bulk():
@@ -371,12 +392,12 @@ def test_bulk():
     L = 40.38
     expected = K
 
-    assert np.abs(rppy.bulk(E=E, v=v) - expected)/expected < err
-    assert np.abs(rppy.bulk(E=E, u=u) - expected)/expected < err
-    assert np.abs(rppy.bulk(E=E, L=L) - expected)/expected < err
-    assert np.abs(rppy.bulk(v=v, u=u) - expected)/expected < err
-    assert np.abs(rppy.bulk(v=v, L=L) - expected)/expected < err
-    assert np.abs(rppy.bulk(u=u, L=L) - expected)/expected < err
+    assert np.abs(rppy.moduli.bulk(E=E, v=v) - expected)/expected < err
+    assert np.abs(rppy.moduli.bulk(E=E, u=u) - expected)/expected < err
+    assert np.abs(rppy.moduli.bulk(E=E, L=L) - expected)/expected < err
+    assert np.abs(rppy.moduli.bulk(v=v, u=u) - expected)/expected < err
+    assert np.abs(rppy.moduli.bulk(v=v, L=L) - expected)/expected < err
+    assert np.abs(rppy.moduli.bulk(u=u, L=L) - expected)/expected < err
 
 
 def test_lame():
@@ -388,12 +409,12 @@ def test_lame():
     L = 40.38
     expected = L
 
-    assert np.abs(rppy.lame(E=E, v=v) - expected)/expected < err
-    assert np.abs(rppy.lame(E=E, u=u) - expected)/expected < err
-    assert np.abs(rppy.lame(E=E, K=K) - expected)/expected < err
-    assert np.abs(rppy.lame(v=v, u=u) - expected)/expected < err
-    assert np.abs(rppy.lame(v=v, K=K) - expected)/expected < err
-    assert np.abs(rppy.lame(u=u, K=K) - expected)/expected < err
+    assert np.abs(rppy.moduli.lame(E=E, v=v) - expected)/expected < err
+    assert np.abs(rppy.moduli.lame(E=E, u=u) - expected)/expected < err
+    assert np.abs(rppy.moduli.lame(E=E, K=K) - expected)/expected < err
+    assert np.abs(rppy.moduli.lame(v=v, u=u) - expected)/expected < err
+    assert np.abs(rppy.moduli.lame(v=v, K=K) - expected)/expected < err
+    assert np.abs(rppy.moduli.lame(u=u, K=K) - expected)/expected < err
 
 
 def test_Vp():
@@ -406,16 +427,16 @@ def test_Vp():
     L = 8
     Vp = 6.008
 
-    assert np.abs(rppy.Vp(rho, E=E, v=v) - Vp)/Vp < err
-    assert np.abs(rppy.Vp(rho, E=E, K=K) - Vp)/Vp < err
-    assert np.abs(rppy.Vp(rho, E=E, u=u) - Vp)/Vp < err
-    assert np.abs(rppy.Vp(rho, E=E, L=L) - Vp)/Vp < err
-    assert np.abs(rppy.Vp(rho, v=v, K=K) - Vp)/Vp < err
-    assert np.abs(rppy.Vp(rho, v=v, u=u) - Vp)/Vp < err
+    assert np.abs(rppy.moduli.Vp(rho, E=E, v=v) - Vp)/Vp < err
+    assert np.abs(rppy.moduli.Vp(rho, E=E, K=K) - Vp)/Vp < err
+    assert np.abs(rppy.moduli.Vp(rho, E=E, u=u) - Vp)/Vp < err
+    assert np.abs(rppy.moduli.Vp(rho, E=E, L=L) - Vp)/Vp < err
+    assert np.abs(rppy.moduli.Vp(rho, v=v, K=K) - Vp)/Vp < err
+    assert np.abs(rppy.moduli.Vp(rho, v=v, u=u) - Vp)/Vp < err
     # assert np.abs(rppy.Vp(rho, v=v, L=L) - Vp)/Vp < err
-    assert np.abs(rppy.Vp(rho, K=K, u=u) - Vp)/Vp < err
-    assert np.abs(rppy.Vp(rho, K=K, L=L) - Vp)/Vp < err
-    assert np.abs(rppy.Vp(rho, u=u, L=L) - Vp)/Vp < err
+    assert np.abs(rppy.moduli.Vp(rho, K=K, u=u) - Vp)/Vp < err
+    assert np.abs(rppy.moduli.Vp(rho, K=K, L=L) - Vp)/Vp < err
+    assert np.abs(rppy.moduli.Vp(rho, u=u, L=L) - Vp)/Vp < err
 
 
 def test_Vs():
@@ -428,11 +449,11 @@ def test_Vs():
     L = 8
     Vs = 4.075
 
-    assert np.abs(rppy.Vs(rho, E=E, v=v) - Vs)/Vs < err
-    assert np.abs(rppy.Vs(rho, E=E, K=K) - Vs)/Vs < err
-    assert np.abs(rppy.Vs(rho, E=E, u=u) - Vs)/Vs < err
-    assert np.abs(rppy.Vs(rho, E=E, L=L) - Vs)/Vs < err
+    assert np.abs(rppy.moduli.Vs(rho, E=E, v=v) - Vs)/Vs < err
+    assert np.abs(rppy.moduli.Vs(rho, E=E, K=K) - Vs)/Vs < err
+    assert np.abs(rppy.moduli.Vs(rho, E=E, u=u) - Vs)/Vs < err
+    assert np.abs(rppy.moduli.Vs(rho, E=E, L=L) - Vs)/Vs < err
     # assert np.abs(rppy.Vs(rho, v=v, K=K) - Vs)/Vs < err
     # assert np.abs(rppy.Vs(rho, v=v, L=L) - Vs)/Vs < err
     # assert np.abs(rppy.Vs(rho, K=K, L=L) - Vs)/Vs < err
-    assert np.abs(rppy.Vs(rho, u=u, L=L) - Vs)/Vs < err
+    assert np.abs(rppy.moduli.Vs(rho, u=u, L=L) - Vs)/Vs < err
