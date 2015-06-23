@@ -50,31 +50,27 @@ def test_thomsen():
     assert np.abs(y - yexp)/yexp < err
 
 
-#def test_ruger_vti():
-#    err = 0.005
-#    Vp1 = 3000
-#    Vp2 = 4000
-#    Vs1 = 1500
-#    Vs2 = 2000
-#    p1 = 2000
-#    p2 = 2200
-#    theta1 = 32
-#    e1 = 0
-#    d1 = 0
-#    y1 = 0
-#    e2 = 0.1
-#    d2 = 0.1
-#    y2 = 0.1
-#
-#    exp = 0
-#
-#    Rpp = rppy.reflectivity.ruger_vti(Vp1, Vs1, p1,
-#                                      e1, d1, y1,
-#                                      Vp2, Vs2, p2,
-#                                      e2, d2, y2,
-#                                      np.radians(theta1))
-#
-#    assert np.abs(Rpp - exp)/exp < err
+def test_ruger_vti():
+    err = 0.05
+    Vp1 = 2900
+    Vp2 = 3100
+    Vs1 = 1800
+    Vs2 = 1850
+    p1 = 2180
+    p2 = 2200
+    theta1 = np.array([20])
+    e1 = 0
+    d1 = 0
+    e2 = 0.1
+    d2 = 0.2
+
+    exp = 0.05
+
+    Rpp = rppy.reflectivity.ruger_vti(Vp1, Vs1, p1, e1, d1,
+                                      Vp2, Vs2, p2, e2, d2,
+                                      np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
 
 
 #def test_avoa_hti():

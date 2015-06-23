@@ -222,8 +222,8 @@ def thomsen(C):
     return(e, d, y)
 
 
-def ruger_vti(Vp1, Vs1, p1, e1, d1, y1,
-              Vp2, Vs2, p2, e2, d2, y2, theta1):
+def ruger_vti(Vp1, Vs1, p1, e1, d1,
+              Vp2, Vs2, p2, e2, d2, theta1):
     """
     Computes the reflectivity response for a weakly anisotripic material with
     vertically transverse isotropy using the equations of Thomsen (1992) and
