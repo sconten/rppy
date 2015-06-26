@@ -215,11 +215,29 @@ def thomsen(C):
     """
 
     e = (C[0][0] - C[2][2]) / (2*C[2][2])
-    d = (((C[0][2] + C[3][3])**2 - (C[2][2] - C[3][3])**2) /
-         (2*C[2][2]*(C[2][2] - C[3][3])))
-    y = (C[5][5] - C[3][3]) / (2*C[3][3])
+    y = (C[5][5] - C[4][4]) / (2*C[4][4])
+    d = ((C[0][2] + 2*C[4][4] - C[2][2])*(C[0][2] + C[2][2]) /
+         (2*C[2][2]*(C[2][2] - C[4][4])))
 
     return(e, d, y)
+
+
+def Cij(e, d, y, p, Vp, Vs):
+    """
+    Returns the elastic stiffness elements C11, C33, C13, C55, and C66 that
+    characterize transversely isotropic materials, using the Thomsen parameters
+    and elastic parameters.
+    """
+    C = np.zeros(shape=(6, 6))
+    f = 1 - (Vs/Vp)*2
+    dtil = f*(np.sqrt(1 + 2*d/f) - 1)
+    C[0][0] = p*Vp**2*(1 + 2*e)
+    C[2][2] = p*Vp**2
+    C[4][4] = p*Vp**2*(1 - f)
+    C[5][5] = p*Vp**2*(1 - f)*(1 + 2*y)
+    C[0][2] = p*Vp**2*(2*f + dtil - 1)
+
+    return(C)
 
 
 def ruger_vti(Vp1, Vs1, p1, e1, d1,
