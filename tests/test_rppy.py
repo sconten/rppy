@@ -30,25 +30,153 @@
 import rppy
 import numpy as np
 
+# Test reflectivity.py
+
+def test_shuey():
+    err = 0.005
+    Vp1 = 3000
+    Vp2 = 4000
+    Vs1 = 1500
+    Vs2 = 2000
+    p1 = 2000
+    p2 = 2200
+    theta1 = np.array([32])
+
+    exp = 0.151
+
+    Rpp = rppy.reflectivity.shuey(Vp1, Vs1, p1,
+                                  Vp2, Vs2, p2,
+                                  np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
+
+
+def test_aki_richards():
+    err = 0.05
+    Vp1 = 3000
+    Vp2 = 4000
+    Vs1 = 1500
+    Vs2 = 2000
+    p1 = 2000
+    p2 = 2200
+    theta1 = np.array([32])
+
+    exp = 0.15351
+
+    Rpp = rppy.reflectivity.aki_richards(Vp1, Vs1, p1,
+                                         Vp2, Vs2, p2,
+                                         np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
+
+
+def test_zoeppritz():
+    # Giving Zoeppritz more leeway because I'm checking against the
+    # Aki-Richards approximation. Change back to usual 5% once I get good
+    # exact values
+    err = 0.1
+    Vp1 = 3000
+    Vp1 = 3000
+    Vp2 = 4000
+    Vs1 = 1500
+    Vs2 = 2000
+    p1 = 2000
+    p2 = 2200
+    theta1 = np.array([32])
+
+    exp = 0.15351
+
+    Rpp = rppy.reflectivity.zoeppritz(Vp1, Vs1, p1,
+                                      Vp2, Vs2, p2,
+                                      np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
+
+
+def test_bortfeld():
+    err = 0.01
+    Vp1 = 3000.
+    Vp2 = 4000.
+    Vs1 = 1500.
+    Vs2 = 2000.
+    p1 = 2000.
+    p2 = 2200.
+    theta1 = np.array([32])
+
+    exp = 0.15469135
+
+    Rpp = rppy.reflectivity.bortfeld(Vp1, Vs1, p1,
+                                     Vp2, Vs2, p2,
+                                     np.radians(theta1))
+
+    assert np.abs(Rpp - exp)/exp < err
+
+
+def test_snell():
+    err = 0.01
+    vp1 = 2500
+    vs1 = 1725
+    vp2 = 3800
+    vs2 = 1900
+    theta1 = np.array([30])
+
+    theta2E = 49.46
+    thetas1E = 20.18
+    thetas2E = 22.33
+
+    theta2, thetas1, thetas2, p = rppy.reflectivity.snell(vp1, vp2,
+                                                          vs1, vs2,
+                                                          np.radians(theta1))
+
+    assert np.abs(np.rad2deg(theta2) - theta2E) < err
+    assert np.abs(np.rad2deg(thetas1) - thetas1E) < err
+    assert np.abs(np.rad2deg(thetas2) - thetas2E) < err
+
 
 def test_thomsen():
     err = 0.05
     C = np.zeros(shape=(6, 6))
-    C[0][0] = 3.06
-    C[1][1] = 3.06
-    C[2][2] = 2.22
-    C[3][3] = 0.91
-    C[4][4] = 0.91
-    C[0][2] = -0.68
-    C[5][5] = 1.21
+    C[0][0] = 3.1
+    C[1][1] = 3.1
+    C[2][2] = 2.2
+    C[3][3] = 0.9
+    C[4][4] = 0.9
+    C[0][2] = -0.7
+    C[5][5] = 1.2
 
-    eexp = 0.19
-    yexp = 0.17
+    eexp = 0.205
+    yexp = 0.167
+    dexp = -0.288
 
     e, d, y = rppy.reflectivity.thomsen(C)
 
     assert np.abs(e - eexp)/eexp < err
     assert np.abs(y - yexp)/yexp < err
+    assert np.abs(d - dexp)/dexp < err
+
+
+def test_Cij():
+    err = 0.05
+    e = 0.205
+    y = 0.167
+    d = -0.288
+    p = 2.200
+    Vp = 1
+    Vs = 0.634
+
+    C11 = 3.1
+    C33 = 2.2
+    C44 = 0.9
+    C66 = 1.2
+    C13 = -0.7
+
+    C = rppy.reflectivity.Cij(e, d, y, p, Vp, Vs)
+
+    assert np.abs(C[0][0] - C11)/C11 < err
+    assert np.abs(C[2][2] - C33)/C33 < err
+    assert np.abs(C[3][3] - C44)/C44 < err
+    assert np.abs(C[5][5] - C66)/C66 < err
+    assert np.abs(C[0][2] - C13)/C13 < err
 
 
 def test_ruger_vti():
@@ -74,14 +202,19 @@ def test_ruger_vti():
     assert np.abs(Rpp - exp)/exp < err
 
 
-#def test_avoa_hti():
-#    assert 1 == 0
-#
-#
-#def test_avoa_ortho():
-#    assert 1 == 0
+def test_exact_vti():
+    assert 0 == 1
 
 
+def test_avoa_hti():
+    assert 1 == 0
+
+
+def test_avoa_ortho():
+    assert 1 == 0
+
+
+# Test fluids.py
 def test_gassmann():
     err = 0.005
     Kfin = 0
@@ -207,107 +340,6 @@ def test_batzle_wang_gas():
 
     assert np.abs(fluid['rho'] - expected_rho)/expected_rho < err
     assert np.abs(fluid['K'] - expected_K)/expected_K < err
-
-
-def test_snell():
-    err = 0.01
-    vp1 = 2500
-    vs1 = 1725
-    vp2 = 3800
-    vs2 = 1900
-    theta1 = np.array([30])
-
-    theta2E = 49.46
-    thetas1E = 20.18
-    thetas2E = 22.33
-
-    theta2, thetas1, thetas2, p = rppy.reflectivity.snell(vp1, vp2,
-                                                          vs1, vs2,
-                                                          np.radians(theta1))
-
-    assert np.abs(np.rad2deg(theta2) - theta2E) < err
-    assert np.abs(np.rad2deg(thetas1) - thetas1E) < err
-    assert np.abs(np.rad2deg(thetas2) - thetas2E) < err
-
-
-def test_shuey():
-    err = 0.005
-    Vp1 = 3000
-    Vp2 = 4000
-    Vs1 = 1500
-    Vs2 = 2000
-    p1 = 2000
-    p2 = 2200
-    theta1 = np.array([32])
-
-    exp = 0.151
-
-    Rpp = rppy.reflectivity.shuey(Vp1, Vs1, p1,
-                                  Vp2, Vs2, p2,
-                                  np.radians(theta1))
-
-    assert np.abs(Rpp - exp)/exp < err
-
-
-def test_aki_richards():
-    err = 0.05
-    Vp1 = 3000
-    Vp2 = 4000
-    Vs1 = 1500
-    Vs2 = 2000
-    p1 = 2000
-    p2 = 2200
-    theta1 = np.array([32])
-
-    exp = 0.15351
-
-    Rpp = rppy.reflectivity.aki_richards(Vp1, Vs1, p1,
-                                         Vp2, Vs2, p2,
-                                         np.radians(theta1))
-
-    assert np.abs(Rpp - exp)/exp < err
-
-
-def test_zoeppritz():
-    # Giving Zoeppritz more leeway because I'm checking against the
-    # Aki-Richards approximation. Change back to usual 5% once I get good
-    # exact values
-    err = 0.1
-    Vp1 = 3000
-    Vp1 = 3000
-    Vp2 = 4000
-    Vs1 = 1500
-    Vs2 = 2000
-    p1 = 2000
-    p2 = 2200
-    theta1 = np.array([32])
-
-    exp = 0.15351
-
-    Rpp = rppy.reflectivity.zoeppritz(Vp1, Vs1, p1,
-                                      Vp2, Vs2, p2,
-                                      np.radians(theta1))
-
-    assert np.abs(Rpp - exp)/exp < err
-
-
-def test_bortfeld():
-    err = 0.01
-    Vp1 = 3000.
-    Vp2 = 4000.
-    Vs1 = 1500.
-    Vs2 = 2000.
-    p1 = 2000.
-    p2 = 2200.
-    theta1 = np.array([32])
-
-    exp = 0.15469135
-
-    Rpp = rppy.reflectivity.bortfeld(Vp1, Vs1, p1,
-                                     Vp2, Vs2, p2,
-                                     np.radians(theta1))
-
-    assert np.abs(Rpp - exp)/exp < err
 
 
 def test_hashin_shtrikman():

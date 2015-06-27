@@ -229,13 +229,19 @@ def Cij(e, d, y, p, Vp, Vs):
     and elastic parameters.
     """
     C = np.zeros(shape=(6, 6))
-    f = 1 - (Vs/Vp)*2
+    f = 1 - (Vs/Vp)**2
     dtil = f*(np.sqrt(1 + 2*d/f) - 1)
+
     C[0][0] = p*Vp**2*(1 + 2*e)
+    C[1][1] = C[0][0]
     C[2][2] = p*Vp**2
-    C[4][4] = p*Vp**2*(1 - f)
+    C[3][3] = p*Vp**2*(1 - f)
+    C[4][4] = C[3][3]
     C[5][5] = p*Vp**2*(1 - f)*(1 + 2*y)
     C[0][2] = p*Vp**2*(2*f + dtil - 1)
+    C[2][0] = C[0][2]
+    C[0][1] = C[0][0] - 2*C[5][5]
+    C[1][0] = C[0][1]
 
     return(C)
 
