@@ -218,8 +218,10 @@ def thomsen(C):
     y = (C[5][5] - C[4][4]) / (2*C[4][4])
     d = ((C[0][2] + 2*C[4][4] - C[2][2])*(C[0][2] + C[2][2]) /
          (2*C[2][2]*(C[2][2] - C[4][4])))
+    dv = (((C[0][2] + C[4][4])**2 - (C[2][2] - C[4][4])**2) /
+          (2*C[2][2]*(C[2][2] - C[4][4])))
 
-    return(e, d, y)
+    return(e, d, y, dv)
 
 
 def Cij(e, d, y, p, Vp, Vs):
@@ -393,13 +395,41 @@ def exact_vti(V1, V2, V3, V4, p1, p2, theta1,
     return(Rpp)
 
 
-def avoa_hti():
+def ruger_hti(Vp1, Vs1, p1, e1, dv1, y1,
+              Vp2, Vs2, p2, e2, dv2, y2,
+              theta1, az):
     """
     Calculate P-wave reflection coefficient (Rpp) as a function of incidence
     angle and azimuth for an anisotropic material with horizontal transverse
-    isotropy.
+    isotropy using the Ruger [1996] approximation.
     """
-    return None
+    theta2, thetas1, thetas2, p = snell(Vp1, Vp2, Vs1, Vs2, theta1)
+    u1 = p1*Vs1**2
+    u2 = p2*Vs2**2
+    Z1 = p1*Vp1
+    Z2 = p2*Vp2
+
+    a = (Vp1 + Vp2)/2
+    B = (Vs1 + Vs2)/2
+    Z = (Z1 + Z2)/2
+    u = (u1 + u2)/2
+
+    dZ = Z2 - Z1
+    da = Vp2 - Vp1
+    du = u2 - u1
+    ddv = dv2 - dv1
+    de = e2 - e1
+    dy = y2 - y1
+
+    A = (1/2)*(dZ/Z)
+
+    B = (1/2)*(da/a - (2*B/a)**2*du/u + (ddv + 2*(2*B/a)**2*dy)*np.sin(az)**2)
+
+    C = (1/2)*(da/a + de*np.cos(az)**4 + ddv*np.sin(az)**2*np.cos(az)**2)
+
+    Rpp = A + B*np.sin(theta1)**2 + C*np.sin(theta1)**2*np.tan(theta1)**2
+
+    return(Rpp)
 
 
 def avoa_ortho():

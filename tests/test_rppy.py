@@ -32,6 +32,7 @@ import numpy as np
 
 # Test reflectivity.py
 
+
 def test_shuey():
     err = 0.005
     Vp1 = 3000
@@ -148,7 +149,7 @@ def test_thomsen():
     yexp = 0.167
     dexp = -0.288
 
-    e, d, y = rppy.reflectivity.thomsen(C)
+    e, d, y, dv = rppy.reflectivity.thomsen(C)
 
     assert np.abs(e - eexp)/eexp < err
     assert np.abs(y - yexp)/yexp < err
@@ -214,25 +215,9 @@ def test_avoa_ortho():
     assert 1 == 0
 
 
-# Test fluids.py
-def test_gassmann():
-    err = 0.005
-    Kfin = 0
-    K0 = 36
-    Kin = 12
-    phi = 0.2
-
-    # Saturate with gas
-    Kfout = 0.133
-    exp = 12.29
-    Kgas = rppy.fluid.gassmann(K0, Kin, Kfin, Kfout, phi)
-    assert np.abs(Kgas - exp)/exp < err
-
-    # Saturate with brine
-    Kfout = 3.013
-    exp = 17.6
-    Kbr = rppy.fluid.gassmann(K0, Kin, Kfin, Kfout, phi)
-    assert np.abs(Kbr - exp)/exp < err
+# Test media.py
+def test_han_eberhart_phillips():
+    assert 0 == 1
 
 
 def test_kuster_toksoz():
@@ -271,13 +256,53 @@ def test_kuster_toksoz():
     assert np.abs(ukt_exp - em['u'])/ukt_exp < err
 
 
-def test_tuning_wedge():
+def test_hashin_shtrikman():
     err = 0.005
-    Rpp = 1
-    f0 = 90
-    t = 5
-    RppT = 1.406
-    assert np.abs(rppy.util.tuning_wedge(Rpp, f0, t) - RppT)/RppT < err
+    K = np.array([36, 75, 2.2])
+    u = np.array([45., 31., 0.])
+    f = np.array([0.584, 0.146, 0.270])
+
+    Kue = 26.9
+    Kle = 7.10
+    uue = 24.6
+    ule = 0
+
+    Ku, Kl, uu, ul = rppy.media.hashin_shtrikman(K, u, f)
+
+    assert np.abs(Ku - Kue)/Kue < err
+    assert np.abs(Kl - Kle)/Kue < err
+    assert np.abs(uu - uue)/Kue < err
+    assert np.abs(ul - ule)/Kue < err
+
+
+def test_voight_reuss_hill():
+    assert 0 == 1
+
+
+# ========================================
+#           Test fluids.py
+def test_ciz_shapiro():
+    assert 0 == 1
+
+
+def test_gassmann():
+    err = 0.005
+    Kfin = 0
+    K0 = 36
+    Kin = 12
+    phi = 0.2
+
+    # Saturate with gas
+    Kfout = 0.133
+    exp = 12.29
+    Kgas = rppy.fluid.gassmann(K0, Kin, Kfin, Kfout, phi)
+    assert np.abs(Kgas - exp)/exp < err
+
+    # Saturate with brine
+    Kfout = 3.013
+    exp = 17.6
+    Kbr = rppy.fluid.gassmann(K0, Kin, Kfin, Kfout, phi)
+    assert np.abs(Kbr - exp)/exp < err
 
 
 def test_batzle_wang_brine():
@@ -342,29 +367,7 @@ def test_batzle_wang_gas():
     assert np.abs(fluid['K'] - expected_K)/expected_K < err
 
 
-def test_hashin_shtrikman():
-    err = 0.005
-    K = np.array([36, 75, 2.2])
-    u = np.array([45., 31., 0.])
-    f = np.array([0.584, 0.146, 0.270])
-
-    Kue = 26.9
-    Kle = 7.10
-    uue = 24.6
-    ule = 0
-
-    Ku, Kl, uu, ul = rppy.media.hashin_shtrikman(K, u, f)
-
-    assert np.abs(Ku - Kue)/Kue < err
-    assert np.abs(Kl - Kle)/Kue < err
-    assert np.abs(uu - uue)/Kue < err
-    assert np.abs(ul - ule)/Kue < err
-
-
-#def test_voight_reuss_hill():
-#    assert 0 == 1
-
-
+# Test moduli.py
 def test_youngs():
     err = 0.005
     E = 70
@@ -451,7 +454,7 @@ def test_lame():
 
 
 def test_Vp():
-    err = 0.005
+    err = 0.05
     rho = 2.65
     E = 95
     v = 0.07
@@ -466,7 +469,7 @@ def test_Vp():
     assert np.abs(rppy.moduli.Vp(rho, E=E, L=L) - Vp)/Vp < err
     assert np.abs(rppy.moduli.Vp(rho, v=v, K=K) - Vp)/Vp < err
     assert np.abs(rppy.moduli.Vp(rho, v=v, u=u) - Vp)/Vp < err
-    # assert np.abs(rppy.Vp(rho, v=v, L=L) - Vp)/Vp < err
+    # assert np.abs(rppy.moduli.Vp(rho, v=v, L=L) - Vp)/Vp < err
     assert np.abs(rppy.moduli.Vp(rho, K=K, u=u) - Vp)/Vp < err
     assert np.abs(rppy.moduli.Vp(rho, K=K, L=L) - Vp)/Vp < err
     assert np.abs(rppy.moduli.Vp(rho, u=u, L=L) - Vp)/Vp < err
@@ -490,3 +493,55 @@ def test_Vs():
     # assert np.abs(rppy.Vs(rho, v=v, L=L) - Vs)/Vs < err
     # assert np.abs(rppy.Vs(rho, K=K, L=L) - Vs)/Vs < err
     assert np.abs(rppy.moduli.Vs(rho, u=u, L=L) - Vs)/Vs < err
+
+
+# Test util.py
+def test_tuning_wedge():
+    err = 0.005
+    Rpp = 1
+    f0 = 90
+    t = 5
+    RppT = 1.406
+    assert np.abs(rppy.util.tuning_wedge(Rpp, f0, t) - RppT)/RppT < err
+
+
+def test_ricker():
+    err = 0.005
+    cf = 90
+    t = np.arange(-16, 16, 1)
+    w = np.array([-5.166e-08,  -5.394e-07,  -4.753e-06,
+                  -3.530e-05,  -2.204e-04,  -1.154e-03,
+                  -5.056e-03,  -1.841e-02,  -5.537e-02,
+                  -1.359e-01,  -2.675e-01,  -4.061e-01,
+                  -4.336e-01,  -2.137e-01,   2.617e-01,
+                  7.755e-01,   1.000e+00,   7.755e-01,
+                  2.617e-01,  -2.137e-01,  -4.336e-01,
+                  -4.061e-01,  -2.675e-01,  -1.359e-01,
+                  -5.537e-02,  -1.841e-02,  -5.056e-03,
+                  -1.154e-03,  -2.204e-04,  -3.530e-05,
+                  -4.753e-06,  -5.394e-07])
+
+    wvlt = rppy.util.ricker(cf, t)
+
+    check = np.asarray(np.abs((wvlt - w)/w))
+    assert check.all() < err
+
+
+def test_ormsby():
+    lc = 5
+    lf = 10
+    hf = 90
+    hc = 120
+    t = np.arange(-16, 16, 1)/1000
+    w = np.array([-16.6253063, -13.9167537, -15.2576779, -25.44130798,
+                  -23.70372832, -26.75197885, -28.58752665, -34.43495848,
+                  -44.89129349, -20.43200873, -44.37700582, -77.04468147,
+                  12.27096796, -51.47511863, -172.89039784, 228.07233786,
+                  612.61056745, 228.07233786, -172.89039784, -51.47511863,
+                  12.27096796, -77.04468147, -44.37700582, -20.43200873,
+                  -44.89129349, -34.43495848, -28.58752665, -26.75197885,
+                  -23.70372832, -25.44130798, -15.2576779, -13.9167537])
+
+    wvlt = rppy.util.ormsby(t, lc, lf, hf, hc)
+
+    assert np.allclose(w, wvlt, rtol=1e-05, atol=1e-08)
