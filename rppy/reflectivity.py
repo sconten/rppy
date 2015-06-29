@@ -432,5 +432,32 @@ def ruger_hti(Vp1, Vs1, p1, e1, dv1, y1,
     return(Rpp)
 
 
-def avoa_ortho():
+def tsvankin_ortho():
     return None
+
+
+def elastic_impedance(Vp, Vs, p, theta):
+    """
+    Calculate the incidence-angle dependent elastic impedance of
+    a material. Uses the Aki and Richards approximation for
+    isotropic reflection coefficients.
+    """
+    K = (Vs/Vp)**2
+    Ie = (Vp**(1 + np.tan(theta)**2) *
+          p**(1 - 4*K*np.sin(theta)**2) *
+          Vs**(-8*K*np.sin(theta)**2))
+
+    return(Ie)
+
+
+def extended_elastic_impedance(Vp, Vs, p, chi, Vp0=1, Vs0=1, p0=1):
+    """
+    Calculate the Extended Elastic Impedance of Whitcombe [2002] of a material.
+    """
+    K = (Vs/Vp)**2
+    Iee = ((Vp0 * p0) *
+           (Vp / Vp0)**(np.cos(chi) + np.sin(chi)) *
+           (p / p0)**(np.cos(chi) - 4*K*np.sin(chi)) *
+           (Vs / Vs0)**(-8*K*np.sin(chi)))
+
+    return(Iee)

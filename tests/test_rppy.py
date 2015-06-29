@@ -207,12 +207,20 @@ def test_exact_vti():
     assert 0 == 1
 
 
-def test_avoa_hti():
+def test_ruger_hti():
     assert 1 == 0
 
 
-def test_avoa_ortho():
+def test_tsvankin_ortho():
     assert 1 == 0
+
+
+def test_elastic_impedance():
+    assert 0 == 1
+
+
+def test_extended_elastic_impedance():
+    assert 0 == 1
 
 
 # Test media.py
