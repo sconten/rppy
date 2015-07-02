@@ -71,24 +71,24 @@ def main(*args):
     plt.figure(2)
     for n in range(np.size(thetas)):
         dummy = reflectivity.zoeppritz(3000, 1500,
-                          2000, 4000,
-                          2000, 2200,
-                          np.radians(thetas[n]))
+                                       2000, 4000,
+                                       2000, 2200,
+                                       np.radians(thetas[n]))
         Rppz[n] = dummy[0]
         Rppb[n] = reflectivity.bortfeld(3000, 1500,
-                           2000, 4000,
-                           2000, 2200,
-                           np.radians(thetas[n]))
+                                        2000, 4000,
+                                        2000, 2200,
+                                        np.radians(thetas[n]))
         Rppak[n] = reflectivity.aki_richards(3000, 1500,
-                                2000, 4000,
-                                2000, 2200,
-                                np.radians(thetas[n]))
+                                             2000, 4000,
+                                             2000, 2200,
+                                             np.radians(thetas[n]))
         Rpps[n] = reflectivity.shuey(3000, 1500, 2000,
-                        4000, 2000, 2200,
-                        np.radians(thetas[n]))
+                                     4000, 2000, 2200,
+                                     np.radians(thetas[n]))
         Rpvti[n] = reflectivity.ruger_vti(3000, 1500, 2000, 0.0, 0.0, 0.0,
-                             4000, 2000, 2200, 0.1, 0.1, 0.1,
-                             np.radians(thetas[n]))
+                                          4000, 2000, 2200, 0.1, 0.1, 0.1,
+                                          np.radians(thetas[n]))
 
     plt.plot(thetas, Rppz, thetas, Rppb, thetas, Rppak, thetas, Rpps, thetas, Rpvti)
     plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey', 'Ruger VTI'])
