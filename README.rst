@@ -19,10 +19,12 @@ rppy
 
 A geophysical library for Python
 
-* Free software: BSD license
-* Documentation: https://rppy.readthedocs.org.
+rppy is a rock physics modelling and interpretation library aimed at well logging and reflection seismic datasets. It includes
+* Seismic reflectivity modelling  of isotropic, VTI, HTI, and fully orthorhombic media
+* Fluid property modelling using the industry-standard Batzle & Wang relations
+* Mineral and rock frame property modelling using both contact and inclusion models
 
-Features
---------
+rppy is released under the BSD License.
+For license information see the file LICENSE.rst
 
-* TODO
+Full function documentation is located at https://rppy.readthedocs.org.
