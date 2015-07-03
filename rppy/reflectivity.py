@@ -463,71 +463,62 @@ def extended_elastic_impedance(Vp, Vs, p, chi, Vp0=1, Vs0=1, p0=1):
     return(Iee)
 
 
-def exact_hti(vp1, vs1, p1, e1, d1, y1,
-              vp2, vs2, p2, e2, d2, y2, theta1):
+def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     """
     Calculate the exact Zoeppritz equations for an HTI medium using the
     Schoenberg and Protazio [1992] formulation.
     """
 
-    C = Cij(e1, d1, y1, p1, vp1, vs1)
-    Cp = Cij(e2, d2, y2, p2, vp2, vs2)
+    # Construct rotation matrices to properly align the
+    # HTI porion of the orthorhombic anisotropy.
+    schi = np.sin(chi1)
+    cchi = np.cos(chi1)
+    G1 = np.zeros(shape=(6, 6))
+    G1 = [[schi**2, cchi**2, 0, 0, 0, 2*schi*cchi],
+          [0, 0, 1, 0, 0, 0],
+          [0, 0, 0, cchi, -schi, 0],
+          [0, 0, 0, schi, cchi,  0],
+          [-cchi*schi, cchi*schi, 0, 0, 0, cchi**2 - schi**2]]
 
-    # Horizontal and vertical slownesses
-    s1 = 1 / (vp1*np.sin(theta1))
-    s3 = 1 / (vp1*np.cos(theta1))
-    s3p = np.sqrt(vp1**-2 - s1**2)
-    s3s = np.sqrt(vs1**-2 - s1**2)
+    schi = np.sin(chi2)
+    cchi = np.cos(chi2)
+    G2 = np.zeros(shape=(6, 6))
+    G2 = [[schi**2, cchi**2, 0, 0, 0, 2*schi*cchi],
+          [0, 0, 1, 0, 0, 0],
+          [0, 0, 0, cchi, -schi, 0],
+          [0, 0, 0, schi, cchi,  0],
+          [-cchi*schi, cchi*schi, 0, 0, 0, cchi**2 - schi**2]]
 
-    # Eigenvectors to the roots of the anellipticity biquadratic equation
-    E2 = (C[0][0] - C[4][4])*(C[2][2] - C[4][4]) - (C[0][2] + C[4][4])**2
-    A = C[2][2]*C[4][4]
-    B = ((C[4][4]*(C[0][0] + C[2][2]) + E2)*s1**2 - p*(C[3][3] + C[4][4]))
-    C = (C[0][0]*s1**2 - p)*(C[0][0]*s1**2 - p)
-    
-    # Compute the two roots of the quadratic formed after variable substitution
-    z1 = (-B - np.sqrt(B**2 - 4*A*C)) / (2*A)
-    z2 = (-B + np.sqrt(B**2 - 4*A*C)) / (2*A)
-    if z1 < z2:
-        s3p = np.sqrt(z1)
-        s3s = np.sqrt(z2)
-    else:
-        s3p = np.sqrt(z2)
-        s3s = np.sqrt(z1)
+    # Rotate stiffness matrices
+    C1 = G1.dot(C1).dot(G1.T)
+    C2 = G2.cot(C2).dot(G2.T)
 
-    ep1 = 1
-    ep3 = 1
-    es1 = 1
-    es3 = 1
+    # Construct Christoffel matrices in the velocity form as the first step
+    # towards determining the phase velocity and phase polarization vectors
+    # in the direction of propagation.
+    cpst = np.cos(phi)*np.sin(theta)
+    spct = np.sin(phi)*np.sin(theta)
+    ct = np.cos(theta)
+    L = np.zeros(shape=(3, 3))
+    L = [[C1[0][0]*cpst**2 + C1[5][5]*spct**2 +
+          C1[5][5]*ct**2 + 2*C1[0][5]*cpst*spct,
+          C1[0][5]*cpst**2 + C1[1][5]*spct**2 +
+          C1[3][4]*ct**2 + (C1[0][1]+C1[5][5])*cpst*spct,
+          (C1[0][2]+C1[5][5])*cpst*ct + (C1[2][5]+C1[3][4])*spct*ct],
+         [C1[0][5]*cpst**2 + C1[1][5]*spct**2 +
+          C1[3][4]*ct**2 + (C1[0][1]+C1[5][5])*cpst*spct,
+          C1[6][6]*cpst**2 + C1[1][1]*spct**2 +
+          C1[3][3]*ct**2 + 2*C1[1][5]*cpst*spct,
+          (C1[2][5]+C1[3][4])*cpst*ct + (C1[1][2]+C1[3][3])*spct*ct],
+         [(C1[0][2]+C1[5][5])*cpst*ct + (C1[2][5]+C1[3][4])*spct*ct,
+          (C1[2][5]+C1[3][4])*cpst*ct + (C1[1][2]+C1[3][3])*spct*ct,
+          C1[5][5]*cpst**2 + C1[3][3]*spct**2+C1[2][2]*ct**2]]
+    L = L / p1
 
-    # Impedance matrices of upper medium
-    X = np.zeros(shape=(2, 2))
-    Y = np.zeros(shape=(2, 2))
-    X[0][0] = ep1
-    X[0][1] = es1
-    X[1][0] = -(C[0][2]*s1*ep1 + C[2][2]*s3p*ep3)
-    X[1][1] = -(C[0][2]*s1*es1 + C[2][2]*s3s*es3)
+    # Compute eigenvectors and eigenvalues of Christoffel matrices
+    w, v = np.linalg.eig(L)
+    # Generate bicubic coefficients
 
-    Y[0][0] = -C[4][4]*(s1*ep3 + s3p*ep1)
-    Y[0][1] = -C[4][4]*(s1*es3 + s3s*es1)
-    Y[1][0] = ep3
-    Y[1][1] = es3
+    # Construct impedance matrices
 
-    # Impedance matrices of lower medium
-    Xp = np.zeros(shape=(2, 2))
-    Yp = np.zeros(shape=(2, 2))
-    Xp[0][0] = ep1
-    Xp[0][1] = es1
-    Xp[1][0] = -(Cp[0][2]*s1*ep1 + Cp[2][2]*s3p*ep3)
-    Xp[1][1] = -(Cp[0][2]*s1*es1 + Cp[2][2]*s3s*es3)
-
-    Yp[0][0] = -Cp[4][4]*(s1*ep3 + s3p*ep1)
-    Yp[0][1] = -Cp[4][4]*(s1*es3 + s3s*es1)
-    Yp[1][0] = ep3
-    Yp[1][1] = es3
-
-    R = (np.invert
-         (np.invert(Yp)*Y + np.invert(Xp)*X) *
-         (np.invert(Yp)*Y - np.invert(Xp)*X))
-
-    return(R[0][0])
+    # Solve for reflection coefficients
