@@ -32,9 +32,8 @@ import matplotlib.pyplot as plt
 
 
 def main(*args):
-    from . import util
-    from . import reflectivity
-    from . import media
+    import media
+    import reflectivity
 
     K = np.array([36, 2.2])
     u = np.array([31, 2.2])
@@ -58,6 +57,22 @@ def main(*args):
     plt.plot(fw, hsu, 'k')
     plt.plot(fw, hsl, 'k')
 
+    C1 = np.zeros(shape=(6, 6))
+    C1 = [[15.12e9, 5.29e9, 6.26e9, 0,      0,      0],
+          [5.29e9, 10.89e9, 6.46e9, 0,      0,      0],
+          [6.26e9,  6.46e9, 9.36e9, 0,      0,      0],
+          [0,       0,      0,      2.00e9, 0,      0],
+          [0,       0,      0,      0,      2.09e9, 0],
+          [0,       0,      0,      0,      0,      4.26e9]]
+
+    C2 = np.zeros(shape=(6, 6))
+    C2 = [[28.52e9,  7.70e9,  6.00e9, 0,      0,      0],
+          [ 7.70e9, 15.21e9,  7.65e9, 0,      0,      0],
+          [ 6.00e9,  7.65e9, 10.65e9, 0,      0,      0],
+          [ 0,       0,       0,      2.23e9, 0,      0],
+          [ 0,       0,       0,      0,      2.41e9, 0],
+          [ 0,       0,       0,      0,      0,      5.71e9]]
+
     plt.axis([0, 1, 0, 40])
     plt.show()
 
@@ -67,6 +82,7 @@ def main(*args):
     Rppak = np.empty(np.shape(thetas))
     Rpps = np.empty(np.shape(thetas))
     Rpvti = np.empty(np.shape(thetas))
+    Rphti = np.empty(np.shape(thetas))
 
     plt.figure(2)
     for n in range(np.size(thetas)):
@@ -89,9 +105,10 @@ def main(*args):
         Rpvti[n] = reflectivity.ruger_vti(3000, 1500, 2000, 0.0, 0.0, 0.0,
                                           4000, 2000, 2200, 0.1, 0.1, 0.1,
                                           np.radians(thetas[n]))
+        Rphtt[n] = reflectivity.exact_ortho(C1, 1400, C2, 1840, 0, 0, 30, 40)
 
-    plt.plot(thetas, Rppz, thetas, Rppb, thetas, Rppak, thetas, Rpps, thetas, Rpvti)
-    plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey', 'Ruger VTI'])
+    plt.plot(thetas, Rppz, thetas, Rppb, thetas, Rppak, thetas, Rpps, thetas, Rpvti, thetas, Rphti)
+    plt.legend(['Zoeppritz', 'Bortfeld', 'Aki-Richards', 'Shuey', 'Ruger VTI', 'Schoenberg'])
     plt.xlim([0, 50])
     plt.ylim([0.15, 0.25])
     plt.show()
