@@ -568,17 +568,23 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     # #### REFLECTED QUASI-P PHASE
     CM1P = christoffel(C1, s1P)
     w, v = np.linalg.eig(CM1P)
+    w0 = w
+    v0 = v
     ev1P = v[:, 0]
 
     # #### REFLECTED QUASI-S PHASE
     CM1S = christoffel(C1, s1S)
     w, v = np.linalg.eig(CM1S)
-    ev1S = v[:, 0]
+    w1 = w
+    v1 = v
+    ev1S = v[:, 1]
 
     # #### REFLECTED QUASI-T PHASE
     CM1T = christoffel(C1, s1T)
     w, v = np.linalg.eig(CM1T)
-    ev1T = v[:, 0]
+    w2 = w
+    v2 = v
+    ev1T = -v[:, 2]
 
     # Match up quasi-SV and quasi-SH with the proper eigenvalues/eigenvectors
     if np.sum(ev1T*n) > np.sum(ev1S*n):
@@ -598,17 +604,23 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     # #### LOWER LAYER P PHASE
     CM2P = christoffel(C2, s2P)
     w, v = np.linalg.eig(CM2P)
-    ev2P = v[:,0]
+    w3 = w
+    v3 = v
+    ev2P = v[:, 0]
 
     # #### LOWER LAYER S PHASE
     CM2S = christoffel(C2, s2S)
     w, v = np.linalg.eig(CM2S)
-    ev2S = v[:,0]
+    w4 = w
+    v4 = v
+    ev2S = v[:, 1]
 
     # #### LOWER LAYER T PHASE
     CM2T = christoffel(C2, s2T)
     w, v = np.linalg.eig(CM2T)
-    ev2T = v[:,0]
+    w5 = w
+    v5 = v
+    ev2T = -v[:, 2]
 
     # Match up quasi-SV and quasi-SH with the proper eigenvalues/eigenvectors
     if np.sum(ev2T*n) > np.sum(ev2S*n):
@@ -630,15 +642,9 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     X1[1][0] = ev1P[1]
     X1[1][1] = ev1S[1]
     X1[1][2] = ev1T[1]
-    X1[2][0] = (-(C1[0][2]+C1[2][5])*s1P[0] -
-                 (C1[1][2]+C1[2][5])*s1P[1] -
-                C1[2][2]*ev1P[2]*s1P[2])
-    X1[2][1] = (-(C1[0][2]+C1[2][5])*s1S[0] -
-                 (C1[1][2]+C1[2][5])*s1S[1] -
-                C1[2][2]*ev1S[2]*s1S[2])
-    X1[2][2] = (-(C1[0][2]+C1[2][5])*s1T[0] -
-                 (C1[1][2]+C1[2][5])*s1T[1] -
-                C1[2][2]*ev1T[2]*s1T[2])
+    X1[2][0] = -(C1[0][2]*ev1P[0] + C1[2][5]*ev1P[1])*s1P[0] - (C1[1][2]*ev1P[1] + C1[2][5]*ev1P[0])*s1P[1] - C1[2][2]*ev1P[2]*s1P[2]
+    X1[2][1] = -(C1[0][2]*ev1S[0] + C1[2][5]*ev1S[1])*s1S[0] - (C1[1][2]*ev1S[1] + C1[2][5]*ev1S[0])*s1S[1] - C1[2][2]*ev1S[2]*s1S[2]
+    X1[2][2] = -(C1[0][2]*ev1T[0] + C1[2][5]*ev1S[1])*s1T[0] - (C1[1][2]*ev1T[1] + C1[2][5]*ev1T[0])*s1T[1] - C1[2][2]*ev1T[2]*s1T[2]
 
     Y1 = np.zeros(shape=(3, 3))
     Y1[0][0] = (-(C1[4][4]*s1P[0] + C1[3][4]*s1P[1])*ev1P[2] -
@@ -665,15 +671,9 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     X2[1][0] = ev2P[1]
     X2[1][1] = ev2S[1]
     X2[1][2] = ev2T[1]
-    X2[2][0] = (-(C2[0][2]+C2[2][5])*s2P[0] -
-                 (C2[1][2]+C2[2][5])*s2P[1] -
-                C2[2][2]*ev2P[2]*s2P[2])
-    X2[2][1] = (-(C2[0][2]+C2[2][5])*s2S[0] -
-                 (C2[1][2]+C2[2][5])*s2S[1] -
-                C2[2][2]*ev2S[2]*s2S[2])
-    X2[2][2] = (-(C2[0][2]+C2[2][5])*s2T[0] -
-                 (C2[1][2]+C2[2][5])*s2T[1] -
-                C2[2][2]*ev2T[2]*s2T[2])
+    X2[2][0] = -(C2[0][2]*ev2P[0] + C2[2][5]*ev2P[1])*s2P[0] - (C2[1][2]*ev2P[1] + C2[2][5]*ev2P[0])*s2P[1] - C2[2][2]*ev2P[2]*s2P[2]
+    X2[2][1] = -(C2[0][2]*ev2S[0] + C2[2][5]*ev2S[1])*s2S[0] - (C2[1][2]*ev2S[1] + C2[2][5]*ev2S[0])*s2S[1] - C2[2][2]*ev2S[2]*s2S[2]
+    X2[2][2] = -(C2[0][2]*ev2T[0] + C2[2][5]*ev2S[1])*s2T[0] - (C2[1][2]*ev2T[1] + C2[2][5]*ev2T[0])*s2T[1] - C2[2][2]*ev2T[2]*s2T[2]
 
     Y2 = np.zeros(shape=(3, 3))
     Y2[0][0] = (-(C2[4][4]*s2P[0] +
@@ -697,8 +697,8 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
 
     # Solve the X, Y, X', Y' system of equations for
     # the Zoeppritz reflection matrix R
-    D = np.linalg.inv(X1)*X2 + np.linalg.inv(Y1)*Y2
-    R = (np.linalg.inv(X1)*X2 - np.linalg.inv(Y1)*Y2)*np.linalg.inv(D)
+    T = np.linalg.inv(np.linalg.inv(X1).dot(X2) + np.linalg.inv(Y1).dot(Y2))
+    R = (np.linalg.inv(X1).dot(X2) - np.linalg.inv(Y1).dot(Y2)).dot(T)
 
     #################
     # QC Shit
@@ -751,7 +751,30 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     print()
     print('reflected standard Christoffel')
     print(CM1P)
-    print('##### Good until here')
+    print()
+    print('eigs for upper quasi p')
+    print(w0)
+    print(v0)
+    print()
+    print('eigs for upper quasi shear')
+    print(w1)
+    print(v1)
+    print()
+    print('eigs for upper quasi transverse')
+    print(w2)
+    print(v2)
+    print()
+    print('eigs for lower quasi p')
+    print(w3)
+    print(v3)
+    print()
+    print('eigs for lower quasi shear')
+    print(w4)
+    print(v4)
+    print()
+    print('eigs for lower quasi transverse')
+    print(w5)
+    print(v5)
     print()
     print('ev1P')
     print(ev1P)
@@ -770,6 +793,20 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     print()
     print('ev2T')
     print(ev2T)
+    print()
+    print('#### Impedance matrices')
+    np.set_printoptions(precision=2)
+    print('X1')
+    print(X1)
+    print()
+    print('Y1')
+    print(Y1)
+    print()
+    print('X2')
+    print(X2)
+    print()
+    print('Y2')
+    print(Y2)
     print()
 
     print('Reflectivity')
