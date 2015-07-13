@@ -203,15 +203,11 @@ def test_ruger_vti():
     assert np.abs(Rpp - exp)/exp < err
 
 
-def test_exact_vti():
+def test_daley_hron_vti():
     assert 0 == 1
 
 
 def test_ruger_hti():
-    assert 1 == 0
-
-
-def test_tsvankin_ortho():
     assert 1 == 0
 
 
@@ -222,6 +218,62 @@ def test_elastic_impedance():
 def test_extended_elastic_impedance():
     assert 0 == 1
 
+
+def test_exact_ortho():
+    err = 0.05
+
+    p1 = 2600
+    vp1 = 2260
+    vs1 = 1428
+    chi1 = 0
+    e1 = 0
+    d1 = 0
+    y1 = 0
+    C1 = rppy.reflectivity.Cij(e1, d1, y1, p1, vp1, vs1)
+
+    p2 = 2700
+    vp2 = 2370
+    vs2 = 1360
+    chi2 = 0
+    e2 = 0.05
+    d2 = 0.02
+    y2 = 0.1
+    C2 = rppy.reflectivity.Cij(e2, d2, y2, p1, vp2, vs2)
+
+    # Case 1
+    exp = 0.066
+    phi = 30
+    theta = 1
+    Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta)
+    assert np.abs(Rpp - exp)/exp < err
+
+    # Case 2
+    exp = 0.096
+    phi = 1
+    theta = 40
+    Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta)
+    assert np.abs(Rpp - exp)/exp < err
+
+    # Case 3
+    exp = 0.087
+    phi = 30
+    theta = 40
+    Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta)
+    assert np.abs(Rpp - exp)/exp < err
+
+    # Case 4
+    exp = 0.072
+    phi = 60
+    theta = 40
+    Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta)
+    assert np.abs(Rpp - exp)/exp < err
+
+    # Case 5
+    exp = 0.065
+    phi = 90.1
+    theta = 40
+    Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta)
+    assert np.abs(Rpp - exp)/exp < err
 
 # Test media.py
 def test_han_eberhart_phillips():
