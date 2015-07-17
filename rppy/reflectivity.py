@@ -210,18 +210,50 @@ def snell(vp1, vp2, vs1, vs2, theta1):
 
 def thomsen(C):
     """
-    Returns the Thomsen parameters that characterise transversely isotropic
+    Returns the Thomsen parameters that characterise orthorhombically isotropic
     materials, computed from the components of the elastic stiffness matrix C.
+
+    Returns Tsvankin's formulation of the parameters extended to HTI and
+    orthorhombic symmetries. In the VTI case, e1, d1, and y1 collapse to the
+    classical Thomsen formulation, while in the HTI case, e2, d2, and y2
+    correspond to the coefficients introduced by Tsvankin [1997]
+    and Ruger [1997].
+
+    VP0 — the vertical velocity of the P-wave;
+    VS0 — the vertical velocity of the S-wave polarized in the x1-
+          direction;
+
+    e(2) — the VTI parameter e in the symmetry plane [x1, x3]
+           normal to the x2-axis (close to the fractional difference
+           between the P-wave velocities in the x1- and x3-
+           directions);
+    δ(2) — the VTI parameter δ in the [x1, x3] plane (responsible
+           for near-vertical P-wave velocity variations, also
+           influences SV-wave velocity anisotropy);
+    γ(2) — the VTI parameter γ in the [x1, x3] plane (close to the
+           fractional difference between the SH-wave velocities
+           in the x1- and x3-directions);
+    e(1) — the VTI parameter e in the [x2, x3] plane;
+    δ(1) — the VTI parameter δ in the [x2, x3] plane;
+    γ(1) — the VTI parameter γ in the [x2, x3] plane;
+    δ(3) — the VTI parameter δ in the [x1, x2] plane (x1 is used as
+           the symmetry axis).
     """
 
-    e = (C[0][0] - C[2][2]) / (2*C[2][2])
-    y = (C[5][5] - C[4][4]) / (2*C[4][4])
-    d = ((C[0][2] + 2*C[4][4] - C[2][2])*(C[0][2] + C[2][2]) /
-         (2*C[2][2]*(C[2][2] - C[4][4])))
-    dv = (((C[0][2] + C[4][4])**2 - (C[2][2] - C[4][4])**2) /
+    e2 = (C[0][0] - C[2][2]) / (2*C[2][2])
+    y2 = (C[5][5] - C[3][3]) / (2*C[3][3])
+    d2 = (((C[0][2] + C[4][4])**2 - (C[2][2] - C[4][4])**2) /
           (2*C[2][2]*(C[2][2] - C[4][4])))
 
-    return(e, d, y, dv)
+    e1 = (C[1][1] - C[2][2]) / (2*C[2][2])
+    y1 = (C[5][5] - C[4][4]) / (2*C[4][4])
+    d1 = (((C[1][2] + C[3][3])**2 - (C[2][2] - C[3][3])**2) /
+          (2*C[2][2]*(C[2][2] - C[3][3])))
+
+    d3 = (((C[0][1] + C[5][5])**2 - (C[0][0] - C[5][5])**2) /
+          (2*C[0][0]*(C[0][0] - C[5][5])))
+
+    return(e1, d1, y1, e2, d2, y2, d3)
 
 
 def Cij(e, d, y, p, Vp, Vs):
@@ -287,8 +319,8 @@ def ruger_vti(Vp1, Vs1, p1, e1, d1,
 
 
 def daley_hron_vti(V1, V2, V3, V4, p1, p2, theta1,
-              C1_11, C1_13, C1_33, C1_55,
-              C2_11, C2_13, C2_33, C2_55):
+                   C1_11, C1_13, C1_33, C1_55,
+                   C2_11, C2_13, C2_33, C2_55):
     """
     Returns the exact reflectivity coefficients for a VTI medium computed using
     the relations of Daley and Hron (1977).
@@ -459,6 +491,44 @@ def extended_elastic_impedance(Vp, Vs, p, chi, Vp0=1, Vs0=1, p0=1):
     return(Iee)
 
 
+def slowness_surface(C, chi, p):
+    phi = np.arange(0, 180, 1)
+    phi = np.radians(phi)
+    theta = np.arange(0, 90, 1)
+    theta = np.radians(theta)
+    chi = np.radians(chi)
+
+    S = np.array(shape=(181, 91))
+
+    schi = np.sin(chi)
+    cchi = np.cos(chi)
+    G1 = [[cchi**2, schi**2, 0, 0, 0, 2*cchi*schi],
+          [schi**2, cchi**2, 0, 0, 0, -2*schi*cchi],
+          [0, 0, 1, 0, 0, 0],
+          [0, 0, 0, cchi, -schi, 0],
+          [0, 0, 0, schi, cchi,  0],
+          [-cchi*schi, cchi*schi, 0, 0, 0, cchi**2 - schi**2]]
+    G1 = np.asarray(G1)
+    # Rotate stiffness matrices
+    C = G1.dot(C).dot(G1.T)
+
+    for n in theta:
+        for m in phi:
+            # Propagation vector (directional, no velocity information)
+            n = np.array([np.cos(phi)*np.sin(theta),
+                          np.sin(phi)*np.sin(theta),
+                          np.cos(theta)])
+
+            # Construct Christoffel matrix
+            L = christoffel(C1, n)
+            # Compute eigenvectors and eigenvalues of Christoffel matrix.
+            w, v = np.linalg.eig(L/p)
+            # quasi-P velocity of the upper medium, in the direction of propagation.
+            vp1 = np.sqrt(np.max(w))
+            # Slowness vector using derived quasi-P velocity.
+            S[n][m] = np.sqrt( (n / vp1).dot(n / vp1))
+
+
 def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     """
     Calculate the exact Zoeppritz equations for an HTI medium using the
@@ -513,10 +583,8 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
 
     # Construct Christoffel matrix
     L = christoffel(C1, n)
-
     # Compute eigenvectors and eigenvalues of Christoffel matrix.
     w, v = np.linalg.eig(L/p1)
-
     # quasi-P velocity of the upper medium, in the direction of propagation.
     vp1 = np.sqrt(np.max(w))
     # Slowness vector using derived quasi-P velocity.
@@ -530,10 +598,8 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     # matrix of the upper layer, density, and the two horizontal components
     # of slowness.
     A, B, C, D = monoclinic_bicubic_coeffs(s[0], s[1], p1, C1)
-    coef = np.array([A, B, C, D])
     # Input the computed coefficients and solve the bicubic polynomial
     z = np.sort(np.roots(np.array([A, B, C, D])))
-    zprint = z
     s1P = np.array([s[0], s[1], np.sqrt(np.abs(z[0]))])
     s1S = np.array([s[0], s[1], np.sqrt(np.abs(z[1]))])
     s1T = np.array([s[0], s[1], np.sqrt(np.abs(z[2]))])
@@ -546,10 +612,8 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     # matrix of the upper layer, density, and the two horizontal components
     # of slowness.
     A, B, C, D = monoclinic_bicubic_coeffs(s[0], s[1], p2, C2)
-    coef2 = np.array([A, B, C, D])
     # Input the computed coefficients and solve the bicubic polynomial
     z = np.sort(np.roots(np.array([A, B, C, D])))
-    zprint2 = z
     s2P = np.array([s[0], s[1], np.sqrt(np.abs(z[0]))])
     s2S = np.array([s[0], s[1], np.sqrt(np.abs(z[1]))])
     s2T = np.array([s[0], s[1], np.sqrt(np.abs(z[2]))])
@@ -564,22 +628,16 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     # #### REFLECTED QUASI-P PHASE
     CM1P = christoffel(C1, s1P)
     w, v = np.linalg.eig(CM1P)
-    w0 = w
-    v0 = v
     ev1P = v[:, 0]
 
     # #### REFLECTED QUASI-S PHASE
     CM1S = christoffel(C1, s1S)
     w, v = np.linalg.eig(CM1S)
-    w1 = w
-    v1 = v
     ev1S = v[:, 1]
 
     # #### REFLECTED QUASI-T PHASE
     CM1T = christoffel(C1, s1T)
     w, v = np.linalg.eig(CM1T)
-    w2 = w
-    v2 = v
     ev1T = -v[:, 2]
 
     # Match up quasi-SV and quasi-SH with the proper eigenvalues/eigenvectors
@@ -600,22 +658,16 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     # #### LOWER LAYER P PHASE
     CM2P = christoffel(C2, s2P)
     w, v = np.linalg.eig(CM2P)
-    w3 = w
-    v3 = v
     ev2P = v[:, 0]
 
     # #### LOWER LAYER S PHASE
     CM2S = christoffel(C2, s2S)
     w, v = np.linalg.eig(CM2S)
-    w4 = w
-    v4 = v
     ev2S = v[:, 1]
 
     # #### LOWER LAYER T PHASE
     CM2T = christoffel(C2, s2T)
     w, v = np.linalg.eig(CM2T)
-    w5 = w
-    v5 = v
     ev2T = -v[:, 2]
 
     # Match up quasi-SV and quasi-SH with the proper eigenvalues/eigenvectors
@@ -695,117 +747,6 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     # the Zoeppritz reflection matrix R
     T = np.linalg.inv(np.linalg.inv(X1).dot(X2) + np.linalg.inv(Y1).dot(Y2))
     R = (np.linalg.inv(X1).dot(X2) - np.linalg.inv(Y1).dot(Y2)).dot(T)
-
-    #################
-    # QC Shit
-    # print('Rotated stiffness matrices')
-    # np.set_printoptions(precision=3)
-    # print(C1)
-    # print(C2)
-    # print()
-    # print('Propagation vector n')
-    # print(n)
-    # print()
-    # print('Upper layer velocity Christoffel')
-    # print(L/p1)
-    # print()
-    # print('Upper Layer Velocity')
-    # print(vp1)
-    # print()
-    # print('Slowness vector')
-    # np.set_printoptions(precision=8)
-    # print(s)
-    # print()
-    # print('Bicubic coeffs')
-    # print(coef)
-    # print()
-    # print('Roots')
-    # print(zprint)
-    # print()
-    # print('S1P')
-    # print(s1P)
-    # print('S1S')
-    # print(s1S)
-    # print('S1T')
-    # print(s1T)
-    # print()
-    # print('check output velocity')
-    # print(1/np.sqrt(s1P[0]**2 + s1P[1]**2 + s1P[2]**2))
-    # print()
-    # print('lower layer coefs')
-    # print(coef2)
-    # print()
-    # print('roots')
-    # print(zprint2)
-    # print()
-    # print('s2P')
-    # print(s2P)
-    # print('s2S')
-    # print(s2S)
-    # print('s2T')
-    # print(s2T)
-    # print()
-    # print('reflected standard Christoffel')
-    # print(CM1P)
-    # print()
-    # print('eigs for upper quasi p')
-    # print(w0)
-    # print(v0)
-    # print()
-    # print('eigs for upper quasi shear')
-    # print(w1)
-    # print(v1)
-    # print()
-    # print('eigs for upper quasi transverse')
-    # print(w2)
-    # print(v2)
-    # print()
-    # print('eigs for lower quasi p')
-    # print(w3)
-    # print(v3)
-    # print()
-    # print('eigs for lower quasi shear')
-    # print(w4)
-    # print(v4)
-    # print()
-    # print('eigs for lower quasi transverse')
-    # print(w5)
-    # print(v5)
-    # print()
-    # print('ev1P')
-    # print(ev1P)
-    # print()
-    # print('ev1S')
-    # print(ev1S)
-    # print()
-    # print('ev1T')
-    # print(ev1T)
-    # print()
-    # print('ev2P')
-    # print(ev2P)
-    # print()
-    # print('ev2S')
-    # print(ev2S)
-    # print()
-    # print('ev2T')
-    # print(ev2T)
-    # print()
-    # print('#### Impedance matrices')
-    # np.set_printoptions(precision=2)
-    # print('X1')
-    # print(X1)
-    # print()
-    # print('Y1')
-    # print(Y1)
-    # print()
-    # print('X2')
-    # print(X2)
-    # print()
-    # print('Y2')
-    # print(Y2)
-    # print()
-    # print('Reflectivity')
-    # print(R[0][0])
 
     return(R[0][0])
 

@@ -34,4 +34,7 @@ Rp_rug = rppy.reflectivity.ruger_hti(vp1, vs1, p1, e1, d1, y1, vp2, vs2, p2, e2,
 print(Rphti)
 plt.figure(1)
 plt.plot(thetas, Rphti, thetas, Rp, thetas, Rp_rug)
+plt.legend(['HTI', 'Zoe', 'Ruger'])
+plt.xlim([10, 70])
+plt.ylim([0, 0.2])
 plt.show()
