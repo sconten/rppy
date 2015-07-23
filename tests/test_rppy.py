@@ -226,19 +226,27 @@ def test_exact_ortho():
     vp1 = 2260
     vs1 = 1428
     chi1 = 0
-    e1 = 0
-    d1 = 0
-    y1 = 0
-    C1 = rppy.reflectivity.Cij(e1, d1, y1, p1, vp1, vs1)
+    e11 = 0
+    d11 = 0
+    y11 = 0
+    e12 = 0
+    d12 = 0
+    y12 = 0
+    d13 = 0
+    C1 = rppy.reflectivity.Cij(vp1, vs1, p1, e11, d11, y11, e12, d12, y12, d13)
 
     p2 = 2700
     vp2 = 2370
     vs2 = 1360
     chi2 = 0
-    e2 = 0.05
-    d2 = 0.02
-    y2 = 0.1
-    C2 = rppy.reflectivity.Cij(e2, d2, y2, p1, vp2, vs2)
+    e21 = 0.05
+    d21 = 0.02
+    y21 = 0.1
+    e22 = 0
+    d22 = 0
+    y22 = 0
+    d23 = 0
+    C2 = rppy.reflectivity.Cij(vp2, vs2, p2, e21, d21, y21, e22, d22, y22, d23)
 
     # Case 1
     exp = 0.066
@@ -274,6 +282,7 @@ def test_exact_ortho():
     theta = 40
     Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta)
     assert np.abs(Rpp - exp)/exp < err
+
 
 # Test media.py
 def test_han_eberhart_phillips():

@@ -208,7 +208,7 @@ def snell(vp1, vp2, vs1, vs2, theta1):
     return(theta2, thetas1, thetas2, p)
 
 
-def thomsen(C):
+def thomsen(C, p):
     """
     Returns the Thomsen parameters that characterise orthorhombically isotropic
     materials, computed from the components of the elastic stiffness matrix C.
@@ -253,28 +253,36 @@ def thomsen(C):
     d3 = (((C[0][1] + C[5][5])**2 - (C[0][0] - C[5][5])**2) /
           (2*C[0][0]*(C[0][0] - C[5][5])))
 
-    return(e1, d1, y1, e2, d2, y2, d3)
+    vp = np.sqrt(C[2][2]/p)
+    vs = np.sqrt(C[4][4]/p)
+
+    return(vp, vs, e1, d1, y1, e2, d2, y2, d3)
 
 
-def Cij(e, d, y, p, Vp, Vs):
+def Cij(Vp, Vs, p, e1, d1, y1, e2, d2, y2, d3):
     """
     Returns the elastic stiffness elements C11, C33, C13, C55, and C66 that
     characterize transversely isotropic materials, using the Thomsen parameters
     and elastic parameters.
     """
     C = np.zeros(shape=(6, 6))
-    f = 1 - (Vs/Vp)**2
-    dtil = f*(np.sqrt(1 + 2*d/f) - 1)
 
-    C[0][0] = p*Vp**2*(1 + 2*e)
-    C[1][1] = C[0][0]
+    # On-diagonal components
     C[2][2] = p*Vp**2
-    C[3][3] = p*Vp**2*(1 - f)
-    C[4][4] = C[3][3]
-    C[5][5] = p*Vp**2*(1 - f)*(1 + 2*y)
-    C[0][2] = p*Vp**2*(2*f + dtil - 1)
+    C[4][4] = p*Vs**2
+    C[0][0] = C[2][2]*(2*e2 + 1)
+    C[1][1] = C[2][2]*(2*e1 + 1)
+    C[5][5] = C[4][4]*(2*y1 + 1)
+    C[3][3] = C[5][5]*(2*y2 + 1)
+
+    # Off-diagonal
+    C[0][2] = np.sqrt((C[2][2] - C[4][4])**2 + 2*C[2][2]*(C[2][2] - C[4][4])*d2) - C[4][4]
+    C[1][2] = np.sqrt((C[2][2] - C[3][3])**2 + 2*C[2][2]*(C[2][2] - C[3][3])*d1) - C[3][3]
+    C[0][1] = np.sqrt((C[0][0] - C[5][5])**2 + 2*C[0][0]*(C[0][0] - C[5][5])*d3) - C[5][5]
+
+    # Exploit symmetry to fill out matrix
     C[2][0] = C[0][2]
-    C[0][1] = C[0][0] - 2*C[5][5]
+    C[2][1] = C[1][2]
     C[1][0] = C[0][1]
 
     return(C)
@@ -526,7 +534,7 @@ def slowness_surface(C, chi, p):
             # quasi-P velocity of the upper medium, in the direction of propagation.
             vp1 = np.sqrt(np.max(w))
             # Slowness vector using derived quasi-P velocity.
-            S[n][m] = np.sqrt( (n / vp1).dot(n / vp1))
+            S[n][m] = np.sqrt((n / vp1).dot(n / vp1))
 
 
 def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
@@ -539,6 +547,12 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     theta = np.radians(theta)
     chi1 = np.radians(chi1)
     chi2 = np.radians(chi2)
+
+    # Black magic begins here
+    # Randomly perturb input matrices to stabilize solution
+    C1 = C1 + np.spacing(1)*np.random.rand(6, 6)
+    C2 = C2 + np.spacing(1)*np.random.rand(6, 6)
+    # End black magic
 
     # Construct rotation matrices to properly align the
     # HTI porion of the orthorhombic anisotropy.
