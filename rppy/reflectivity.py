@@ -548,10 +548,13 @@ def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
     chi1 = np.radians(chi1)
     chi2 = np.radians(chi2)
 
-    # Black magic begins here
-    # Randomly perturb input matrices to stabilize solution
-    C1 = C1 + np.spacing(1)*np.random.rand(6, 6)
-    C2 = C2 + np.spacing(1)*np.random.rand(6, 6)
+    # Black magic begins here...
+    # Adding a very small percentage of whitening to the input matrices seems
+    # to stabilize the solution???
+    norm1 = np.linalg.norm(C1)
+    norm2 = np.linalg.norm(C2)
+    C1 = C1 + 0.00001*norm1*np.random.rand(6, 6)
+    C2 = C2 + 0.00001*norm2*np.random.rand(6, 6)
     # End black magic
 
     # Construct rotation matrices to properly align the
