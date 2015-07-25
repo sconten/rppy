@@ -443,6 +443,9 @@ def ruger_hti(Vp1, Vs1, p1, ev1, dv1, y1,
     angle and azimuth for an anisotropic material with horizontal transverse
     isotropy using the Ruger [1996] approximation.
     """
+    theta1 = np.radians(theta1)
+    phi = np.radians(phi)
+
     theta2, thetas1, thetas2, p = snell(Vp1, Vp2, Vs1, Vs2, theta1)
     u1 = p1*Vs1**2
     u2 = p2*Vs2**2

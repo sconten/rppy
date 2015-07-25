@@ -21,9 +21,9 @@ p2 = 2200
 e1_2 = 0.0
 d1_2 = 0.0
 y1_2 = 0.0
-e2_2 = 0.1
-d2_2 = 0.1
-y2_2 = 0.3
+e2_2 = 0.0
+d2_2 = 0.0
+y2_2 = 0.0
 d3_2 = 0.0
 chi2 = 0.0
 C2 = rppy.reflectivity.Cij(vp2, vs2, p2, e1_2, d1_2, y1_2, e2_2, d2_2, y2_2, d3_2)
@@ -45,4 +45,5 @@ for aid, val in enumerate(loopang):
 
 plt.figure(1)
 plt.plot(loopang, rphti, loopang, rprug, loopang, rpzoe)
+plt.legend(['hti', 'ruger', 'zoe'])
 plt.show()

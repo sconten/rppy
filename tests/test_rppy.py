@@ -207,16 +207,79 @@ def test_daley_hron_vti():
     assert 0 == 1
 
 
-def test_ruger_hti():
-    assert 1 == 0
-
-
 def test_elastic_impedance():
     assert 0 == 1
 
 
 def test_extended_elastic_impedance():
     assert 0 == 1
+
+
+def test_ruger_hti_against_crewes_ruger_hti():
+    err = 0.05
+    vp1 = 3000
+    vs1 = 1500
+    p1 = 2000
+    e1 = 0
+    d1 = 0
+    y1 = 0
+
+    vp2 = 4000
+    vs2 = 2000
+    p2 = 2200
+    e2 = 0.1
+    d2 = 0.1
+    y2 = 0.3
+
+    theta = 30
+
+    phi = np.array([2.32558, 7.90698, 15.81395, 20.69767, 27.44186, 32.55814,
+                    37.67442, 43.25581, 48.60465, 53.25581, 58.60465, 64.88372,
+                    72.09302, 82.09302, 87.44186, 76.97674])
+    exp = np.array([0.19847, 0.19721, 0.19344, 0.18884, 0.18214, 0.17628,
+                    0.16958, 0.16205, 0.15493, 0.14907, 0.14195, 0.13526,
+                    0.12814, 0.12186, 0.12102, 0.12479])
+
+    for ind, phiv in enumerate(phi):
+        Rpp = rppy.reflectivity.ruger_hti(vp1, vs1, p1, e1, d1, y1,
+                                          vp2, vs2, p2, e2, d2, y2,
+                                          theta, phiv)
+        assert np.abs(Rpp - exp[ind])/exp[ind] < err
+
+
+def test_exact_orth_against_crewes_exact_hti():
+    err = 0.05
+    vp1 = 3000
+    vs1 = 1500
+    p1 = 2000
+    e1 = 0
+    d1 = 0
+    y1 = 0
+    chi1 = 0
+    C1 = rppy.reflectivity.Cij(vp1, vs1, p1, 0, 0, 0, e1, d1, y1, 0)
+
+    vp2 = 4000
+    vs2 = 2000
+    p2 = 2200
+    e2 = 0.1
+    d2 = 0.1
+    y2 = 0.3
+    chi2 = 0
+    C2 = rppy.reflectivity.Cij(vp2, vs2, p2, 0, 0, 0, e2, d2, y2, 0)
+
+    theta = np.array([30])
+
+    phi = np.array([2.55814, 8.83721, 14.65116, 19.30233, 23.48837, 26.97674,
+                    30.69767, 33.72093, 37.44186, 41.16279, 45.58140, 49.76744,
+                    53.95349, 59.76744, 64.41860, 70.93023, 77.20930, 83.72093,
+                    87.67442])
+    exp = np.array([0.20977, 0.20851, 0.20600, 0.20349, 0.20056, 0.19763,
+                    0.19428, 0.19093, 0.18716, 0.18298, 0.17795, 0.17335,
+                    0.16916, 0.16288, 0.15828, 0.15367, 0.14949, 0.14740,
+                    0.14656])
+    for ind, phiv in enumerate(phi):
+        Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phiv, theta)
+        assert np.abs(Rpp - exp[ind])/exp[ind] < err
 
 
 def test_exact_ortho():
