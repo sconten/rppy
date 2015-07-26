@@ -191,7 +191,7 @@ def snell(vp1, vp2, vs1, vs2, theta1):
     thetas1 = np.full(np.shape(theta1), None)
     thetas2 = np.full(np.shape(theta1), None)
 
-    for n in np.arange(0, len(theta1)):
+    for n , tv in enumerate(theta1):
         p[n] = np.sin(theta1[n])/vp1        # Ray parameter
         thetas1[n] = np.arcsin(p[n]*vs1)    # S-wave reflection
 

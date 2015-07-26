@@ -215,6 +215,57 @@ def test_extended_elastic_impedance():
     assert 0 == 1
 
 
+def test_zoeppritz_against_crewes():
+    err = 0.05
+    vp1 = 3000
+    vs1 = 1500
+    p1 = 2000
+
+    vp2 = 4000
+    vs2 = 2000
+    p2 = 2200
+
+    theta = np.array([1.4865, 5.4054, 9.0541, 12.027, 15.270, 18.514, 22.568,
+                      25.405, 31.351, 34.054, 35.946, 37.973, 39.730, 41.216,
+                      42.432, 43.514, 44.595, 45.541, 46.081, 46.622, 47.027,
+                      47.568, 47.838, 48.108])
+    exp = np.array([0.18854, 0.18822, 0.18549, 0.18039, 0.17770, 0.17257,
+                    0.16738, 0.16472, 0.16667, 0.16888, 0.17602, 0.18801,
+                    0.20488, 0.22664, 0.24841, 0.27749, 0.31386, 0.35268,
+                    0.39638, 0.43280, 0.47408, 0.53480, 0.58582, 0.64900])
+
+    Rpp = rppy.reflectivity.zoeppritz(vp1, vs1, p1, vp2, vs2, p2, np.radians(theta))
+    for ind, val in enumerate(Rpp):
+        assert np.abs(val - exp[ind])/exp[ind] < err
+
+
+def test_ruger_vti_against_crewes_ruger_vti():
+    err = 0.05
+    vp1 = 3000
+    vs1 = 1500
+    p1 = 2000
+    e1 = 0
+    d1 = 0
+
+    vp2 = 4000
+    vs2 = 2000
+    p2 = 2200
+    e2 = 0.1
+    d2 = 0.1
+
+    theta = np.array([49.406,
+                      46.469, 43.776, 40.594, 37.168, 33.252, 29.825, 26.154,
+                      21.748, 16.364, 11.224, 6.3287, 0.69930])
+    exp = np.array([0.26723, 0.23298, 0.21093, 0.19619, 0.18387,
+                    0.17642, 0.17386, 0.17617, 0.17602, 0.18315, 0.18785,
+                    0.19012, 0.19236])
+
+    Rpp = rppy.reflectivity.ruger_vti(vp1, vs1, p1, e1, d1,
+                                      vp2, vs2, p2, e2, d2, np.radians(theta))
+    for ind, val in enumerate(Rpp):
+        assert np.abs(val - exp[ind])/exp[ind] < err
+
+
 def test_ruger_hti_against_crewes_ruger_hti():
     err = 0.05
     vp1 = 3000
