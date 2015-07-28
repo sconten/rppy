@@ -71,29 +71,6 @@ def test_aki_richards():
     assert np.abs(Rpp - exp)/exp < err
 
 
-def test_zoeppritz():
-    # Giving Zoeppritz more leeway because I'm checking against the
-    # Aki-Richards approximation. Change back to usual 5% once I get good
-    # exact values
-    err = 0.1
-    Vp1 = 3000
-    Vp1 = 3000
-    Vp2 = 4000
-    Vs1 = 1500
-    Vs2 = 2000
-    p1 = 2000
-    p2 = 2200
-    theta1 = np.array([32])
-
-    exp = 0.15351
-
-    Rpp = rppy.reflectivity.zoeppritz(Vp1, Vs1, p1,
-                                      Vp2, Vs2, p2,
-                                      theta1)
-
-    assert np.abs(Rpp - exp)/exp < err
-
-
 def test_bortfeld():
     err = 0.01
     Vp1 = 3000.
@@ -181,29 +158,6 @@ def test_Cij():
     assert np.abs(C[2][2] - C2[2][2])/C2[2][2] < err
     assert np.abs(C[5][5] - C2[5][5])/C2[5][5] < err
     assert np.abs(C[0][2] - C2[0][2])/C2[0][2] < err
-
-
-def test_ruger_vti():
-    err = 0.05
-    Vp1 = 2900
-    Vp2 = 3100
-    Vs1 = 1800
-    Vs2 = 1850
-    p1 = 2180
-    p2 = 2200
-    theta1 = np.array([20])
-    e1 = 0
-    d1 = 0
-    e2 = 0.1
-    d2 = 0.2
-
-    exp = 0.05
-
-    Rpp = rppy.reflectivity.ruger_vti(Vp1, Vs1, p1, e1, d1,
-                                      Vp2, Vs2, p2, e2, d2,
-                                      theta1)
-
-    assert np.abs(Rpp - exp)/exp < err
 
 
 def test_daley_hron_vti():
@@ -334,71 +288,6 @@ def test_exact_orth_against_crewes():
     for ind, phiv in enumerate(phi):
         Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phiv, theta)
         assert np.abs(Rpp - exp[ind])/exp[ind] < err
-
-
-def test_exact_ortho():
-    err = 0.05
-
-    p1 = 2600
-    vp1 = 2260
-    vs1 = 1428
-    chi1 = 0.00001
-    e11 = 0
-    d11 = 0
-    y11 = 0
-    e12 = 0
-    d12 = 0
-    y12 = 0
-    d13 = 0
-    C1 = rppy.reflectivity.Cij(vp1, vs1, p1, e11, d11, y11, e12, d12, y12, d13)
-
-    p2 = 2700
-    vp2 = 2370
-    vs2 = 1360
-    chi2 = 0.00001
-    e21 = 0.05
-    d21 = 0.02
-    y21 = 0.1
-    e22 = 0
-    d22 = 0
-    y22 = 0
-    d23 = 0
-    C2 = rppy.reflectivity.Cij(vp2, vs2, p2, e21, d21, y21, e22, d22, y22, d23)
-
-    # Case 1
-    #exp = 0.066
-    #phi = 30
-    #theta = 1
-    #Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta)
-    #assert np.abs(Rpp - exp)/exp < err
-
-    # Case 2
-    exp = 0.096
-    phi = 1
-    theta = 40
-    Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta)
-    assert np.abs(Rpp - exp)/exp < err
-
-    # Case 3
-    exp = 0.087
-    phi = 30
-    theta = 40
-    Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta)
-    assert np.abs(Rpp - exp)/exp < err
-
-    # Case 4
-    exp = 0.072
-    phi = 60
-    theta = 40
-    Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta)
-    assert np.abs(Rpp - exp)/exp < err
-
-    # Case 5
-    exp = 0.065
-    phi = 90.1
-    theta = 40
-    Rpp = rppy.reflectivity.exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta)
-    assert np.abs(Rpp - exp)/exp < err
 
 
 # Test media.py

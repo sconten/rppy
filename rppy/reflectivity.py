@@ -195,19 +195,16 @@ def snell(vp1, vp2, vs1, vs2, theta1):
     thetas1 = np.full(np.shape(theta1), None)
     thetas2 = np.full(np.shape(theta1), None)
 
-    for n , tv in enumerate(theta1):
-        p[n] = np.sin(theta1[n])/vp1        # Ray parameter
-        thetas1[n] = np.arcsin(p[n]*vs1)    # S-wave reflection
+    p = np.sin(theta1)/vp1        # Ray parameter
+    thetas1 = np.arcsin(p*vs1)    # S-wave reflection
 
-        if theta1[n] >= theta_crit_1:
-            theta2[n] = None
-            thetas2[n] = np.arcsin(p[n]*vs2)    # S-wave refraction
-        elif theta1[n] >= theta_crit_2:
-            theta2[n] = None
-            thetas2[n] = None                   # S-wave refraction
-        else:
-            theta2[n] = np.arcsin(p[n]*vp2)     # P-wave refraction
-            thetas2[n] = np.arcsin(p[n]*vs2)    # S-wave refraction
+    # P refraction below first critical angle
+    theta2 = np.arcsin(p*vp2)
+    #theta2[np.where(theta2 > theta_crit_1)] = None
+
+    # S refraction below second critical angle
+    #thetas2[np.where(theta2 < theta_crit_2)] = np.arcsin(p[np.where(theta2 < theta_crit_2)]*vs2)
+    thetas2 = np.arcsin(p*vs2)
 
     return(theta2, thetas1, thetas2, p)
 
