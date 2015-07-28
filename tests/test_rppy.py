@@ -161,30 +161,26 @@ def test_thomsen():
 
 def test_Cij():
     err = 0.05
-    e1 = 0.205
-    y1 = 0.167
-    d1 = -0.288
-    e2 = 0
-    y2 = 0
-    d2 = 0
-    d3 = 0
-    p = 2.200
-    Vp = 1
-    Vs = 0.634
+    C = np.zeros(shape=(6, 6))
+    C[0][0] = 87.26e9
+    C[1][1] = 87.26e9
+    C[2][2] = 105.8e9
+    C[3][3] = 57.15e9
+    C[4][4] = 57.15e9
+    C[5][5] = 40.35e9
+    C[0][2] = 11.95e9
+    C[0][1] = 6.57e9
+    C[0][3] = -17.18e9
+    p = 2646.6
 
-    C11 = 3.1
-    C33 = 2.2
-    C44 = 0.9
-    C66 = 1.2
-    C13 = -0.7
+    vp, vs, e1, d1, y1, e2, d2, y2, d3 = rppy.reflectivity.thomsen(C, p)
 
-    C = rppy.reflectivity.Cij(Vp, Vs, p, e1, d1, y1, e2, d2, y2, d3)
+    C2 = rppy.reflectivity.Cij(vp, vs, p, e1, d1, y1, e2, d2, y2, d3)
 
-    assert np.abs(C[0][0] - C11)/C11 < err
-    assert np.abs(C[2][2] - C33)/C33 < err
-    assert np.abs(C[3][3] - C44)/C44 < err
-    assert np.abs(C[5][5] - C66)/C66 < err
-    assert np.abs(C[0][2] - C13)/C13 < err
+    assert np.abs(C[0][0] - C2[0][0])/C2[0][0] < err
+    assert np.abs(C[2][2] - C2[2][2])/C2[2][2] < err
+    assert np.abs(C[5][5] - C2[5][5])/C2[5][5] < err
+    assert np.abs(C[0][2] - C2[0][2])/C2[0][2] < err
 
 
 def test_ruger_vti():
