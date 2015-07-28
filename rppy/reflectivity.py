@@ -43,6 +43,7 @@ def shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     :param rho2: Density of lower layer.
     :param theta1: Angle of incidence for P wave in upper layer.
     """
+    theta1 = np.radians(theta1)
     theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
     dvp = vp2 - vp1
     drho = rho2 - rho1
@@ -74,6 +75,7 @@ def aki_richards(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     :param rho2: Density of lower layer.
     :param theta1: Angle of incidence for P wave in upper layer.
     """
+    theta1 = np.radians(theta1)
     theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
     dvp = vp2 - vp1
     dvs = vs2 - vs1
@@ -103,6 +105,7 @@ def zoeppritz(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     :param theta1: Angle of incidence for P wave in upper layer.
     """
     # Need reflection and refraction angles for Zoeppritz
+    theta1 = np.radians(theta1)
     theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
 
     Rpp = np.zeros(np.shape(theta1))
@@ -163,6 +166,7 @@ def bortfeld(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     :param rho2: Density of lower layer.
     :param theta1: Angle of incidence for P wave in upper layer.
     """
+    theta1 = np.radians(theta1)
     theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
 
     Rpp = (0.5 * np.log((vp2 * rho2 * np.cos(theta1)) /
@@ -295,6 +299,7 @@ def ruger_vti(Vp1, Vs1, p1, e1, d1,
     vertically transverse isotropy using the equations of Thomsen (1992) and
     Ruger (1997).
     """
+    theta1 = np.radians(theta1)
     theta2, thetas1, thetas2, p = snell(Vp1, Vp2, Vs1, Vs2, theta1)
     theta = (theta1 + theta2)/2
     theta = theta1
@@ -344,6 +349,7 @@ def daley_hron_vti(V1, V2, V3, V4, p1, p2, theta1,
 
     # TODO: There's gotta be a better way to implement these equation than
     #       transcribing them from the 1977 paper. This is insane.
+    theta1 = np.radians(theta1)
     theta2, theta3, theta4, p = snell(V1, V2, V3, V4, theta1)
 
     x = np.sin(theta1)

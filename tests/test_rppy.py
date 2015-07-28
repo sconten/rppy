@@ -47,7 +47,7 @@ def test_shuey():
 
     Rpp = rppy.reflectivity.shuey(Vp1, Vs1, p1,
                                   Vp2, Vs2, p2,
-                                  np.radians(theta1))
+                                  theta1)
 
     assert np.abs(Rpp - exp)/exp < err
 
@@ -66,7 +66,7 @@ def test_aki_richards():
 
     Rpp = rppy.reflectivity.aki_richards(Vp1, Vs1, p1,
                                          Vp2, Vs2, p2,
-                                         np.radians(theta1))
+                                         theta1)
 
     assert np.abs(Rpp - exp)/exp < err
 
@@ -89,7 +89,7 @@ def test_zoeppritz():
 
     Rpp = rppy.reflectivity.zoeppritz(Vp1, Vs1, p1,
                                       Vp2, Vs2, p2,
-                                      np.radians(theta1))
+                                      theta1)
 
     assert np.abs(Rpp - exp)/exp < err
 
@@ -108,7 +108,7 @@ def test_bortfeld():
 
     Rpp = rppy.reflectivity.bortfeld(Vp1, Vs1, p1,
                                      Vp2, Vs2, p2,
-                                     np.radians(theta1))
+                                     theta1)
 
     assert np.abs(Rpp - exp)/exp < err
 
@@ -137,30 +137,37 @@ def test_snell():
 def test_thomsen():
     err = 0.05
     C = np.zeros(shape=(6, 6))
-    C[0][0] = 3.1
-    C[1][1] = 3.1
-    C[2][2] = 2.2
-    C[3][3] = 0.9
-    C[4][4] = 0.9
-    C[0][2] = -0.7
-    C[5][5] = 1.2
+    C[0][0] = 87.26e9
+    C[1][1] = 87.26e9
+    C[2][2] = 105.8e9
+    C[3][3] = 57.15e9
+    C[4][4] = 57.15e9
+    C[5][5] = 40.35e9
+    C[0][2] = 11.95e9
+    C[0][1] = 6.57e9
+    C[0][3] = -17.18e9
+    p = 2646.6
 
-    eexp = 0.205
-    yexp = 0.167
-    dexp = -0.288
+    eexp = -0.08762
+    yexp = -0.14698
+    dexp = -0.031453
 
-    e, d, y, dv = rppy.reflectivity.thomsen(C)
+    vp, vs, e1, d1, y1, e2, d2, y2, d3 = rppy.reflectivity.thomsen(C, p)
 
-    assert np.abs(e - eexp)/eexp < err
-    assert np.abs(y - yexp)/yexp < err
-    assert np.abs(d - dexp)/dexp < err
+    assert np.abs(e1 - eexp)/eexp < err
+    assert np.abs(y1 - yexp)/yexp < err
+    assert np.abs(d1 - dexp)/dexp < err
 
 
 def test_Cij():
     err = 0.05
-    e = 0.205
-    y = 0.167
-    d = -0.288
+    e1 = 0.205
+    y1 = 0.167
+    d1 = -0.288
+    e2 = 0
+    y2 = 0
+    d2 = 0
+    d3 = 0
     p = 2.200
     Vp = 1
     Vs = 0.634
@@ -171,7 +178,7 @@ def test_Cij():
     C66 = 1.2
     C13 = -0.7
 
-    C = rppy.reflectivity.Cij(e, d, y, p, Vp, Vs)
+    C = rppy.reflectivity.Cij(Vp, Vs, p, e1, d1, y1, e2, d2, y2, d3)
 
     assert np.abs(C[0][0] - C11)/C11 < err
     assert np.abs(C[2][2] - C33)/C33 < err
@@ -198,7 +205,7 @@ def test_ruger_vti():
 
     Rpp = rppy.reflectivity.ruger_vti(Vp1, Vs1, p1, e1, d1,
                                       Vp2, Vs2, p2, e2, d2,
-                                      np.radians(theta1))
+                                      theta1)
 
     assert np.abs(Rpp - exp)/exp < err
 
@@ -234,12 +241,12 @@ def test_zoeppritz_against_crewes():
                     0.20488, 0.22664, 0.24841, 0.27749, 0.31386, 0.35268,
                     0.39638, 0.43280, 0.47408, 0.53480, 0.58582, 0.64900])
 
-    Rpp = rppy.reflectivity.zoeppritz(vp1, vs1, p1, vp2, vs2, p2, np.radians(theta))
+    Rpp = rppy.reflectivity.zoeppritz(vp1, vs1, p1, vp2, vs2, p2, theta)
     for ind, val in enumerate(Rpp):
         assert np.abs(val - exp[ind])/exp[ind] < err
 
 
-def test_ruger_vti_against_crewes_ruger_vti():
+def test_ruger_vti_against_crewes():
     err = 0.05
     vp1 = 3000
     vs1 = 1500
@@ -261,12 +268,12 @@ def test_ruger_vti_against_crewes_ruger_vti():
                     0.19012, 0.19236])
 
     Rpp = rppy.reflectivity.ruger_vti(vp1, vs1, p1, e1, d1,
-                                      vp2, vs2, p2, e2, d2, np.radians(theta))
+                                      vp2, vs2, p2, e2, d2, theta)
     for ind, val in enumerate(Rpp):
         assert np.abs(val - exp[ind])/exp[ind] < err
 
 
-def test_ruger_hti_against_crewes_ruger_hti():
+def test_ruger_hti_against_crewes():
     err = 0.05
     vp1 = 3000
     vs1 = 1500
@@ -298,7 +305,7 @@ def test_ruger_hti_against_crewes_ruger_hti():
         assert np.abs(Rpp - exp[ind])/exp[ind] < err
 
 
-def test_exact_orth_against_crewes_exact_hti():
+def test_exact_orth_against_crewes():
     err = 0.05
     vp1 = 3000
     vs1 = 1500
