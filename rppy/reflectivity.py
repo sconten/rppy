@@ -43,6 +43,7 @@ def shuey(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     :param rho2: Density of lower layer.
     :param theta1: Angle of incidence for P wave in upper layer.
     """
+    theta1 = np.radians(theta1)
     theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
     dvp = vp2 - vp1
     drho = rho2 - rho1
@@ -74,6 +75,7 @@ def aki_richards(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     :param rho2: Density of lower layer.
     :param theta1: Angle of incidence for P wave in upper layer.
     """
+    theta1 = np.radians(theta1)
     theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
     dvp = vp2 - vp1
     dvs = vs2 - vs1
@@ -103,6 +105,7 @@ def zoeppritz(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     :param theta1: Angle of incidence for P wave in upper layer.
     """
     # Need reflection and refraction angles for Zoeppritz
+    theta1 = np.radians(theta1)
     theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
 
     Rpp = np.zeros(np.shape(theta1))
@@ -163,6 +166,7 @@ def bortfeld(vp1, vs1, rho1, vp2, vs2, rho2, theta1):
     :param rho2: Density of lower layer.
     :param theta1: Angle of incidence for P wave in upper layer.
     """
+    theta1 = np.radians(theta1)
     theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
 
     Rpp = (0.5 * np.log((vp2 * rho2 * np.cos(theta1)) /
@@ -191,35 +195,98 @@ def snell(vp1, vp2, vs1, vs2, theta1):
     thetas1 = np.full(np.shape(theta1), None)
     thetas2 = np.full(np.shape(theta1), None)
 
-    for n in np.arange(0, len(theta1)):
-        p[n] = np.sin(theta1[n])/vp1        # Ray parameter
-        thetas1[n] = np.arcsin(p[n]*vs1)    # S-wave reflection
+    p = np.sin(theta1)/vp1        # Ray parameter
+    thetas1 = np.arcsin(p*vs1)    # S-wave reflection
 
-        if theta1[n] >= theta_crit_1:
-            theta2[n] = None
-            thetas2[n] = np.arcsin(p[n]*vs2)    # S-wave refraction
-        elif theta1[n] >= theta_crit_2:
-            theta2[n] = None
-            thetas2[n] = None                   # S-wave refraction
-        else:
-            theta2[n] = np.arcsin(p[n]*vp2)     # P-wave refraction
-            thetas2[n] = np.arcsin(p[n]*vs2)    # S-wave refraction
+    # P refraction below first critical angle
+    theta2 = np.arcsin(p*vp2)
+    #theta2[np.where(theta2 > theta_crit_1)] = None
+
+    # S refraction below second critical angle
+    #thetas2[np.where(theta2 < theta_crit_2)] = np.arcsin(p[np.where(theta2 < theta_crit_2)]*vs2)
+    thetas2 = np.arcsin(p*vs2)
 
     return(theta2, thetas1, thetas2, p)
 
 
-def thomsen(C):
+def thomsen(C, p):
     """
-    Returns the Thomsen parameters that characterise transversely isotropic
+    Returns the Thomsen parameters that characterise orthorhombically isotropic
     materials, computed from the components of the elastic stiffness matrix C.
+
+    Returns Tsvankin's formulation of the parameters extended to HTI and
+    orthorhombic symmetries. In the VTI case, e1, d1, and y1 collapse to the
+    classical Thomsen formulation, while in the HTI case, e2, d2, and y2
+    correspond to the coefficients introduced by Tsvankin [1997]
+    and Ruger [1997].
+
+    VP0 — the vertical velocity of the P-wave;
+    VS0 — the vertical velocity of the S-wave polarized in the x1-
+          direction;
+
+    e(2) — the VTI parameter e in the symmetry plane [x1, x3]
+           normal to the x2-axis (close to the fractional difference
+           between the P-wave velocities in the x1- and x3-
+           directions);
+    δ(2) — the VTI parameter δ in the [x1, x3] plane (responsible
+           for near-vertical P-wave velocity variations, also
+           influences SV-wave velocity anisotropy);
+    γ(2) — the VTI parameter γ in the [x1, x3] plane (close to the
+           fractional difference between the SH-wave velocities
+           in the x1- and x3-directions);
+    e(1) — the VTI parameter e in the [x2, x3] plane;
+    δ(1) — the VTI parameter δ in the [x2, x3] plane;
+    γ(1) — the VTI parameter γ in the [x2, x3] plane;
+    δ(3) — the VTI parameter δ in the [x1, x2] plane (x1 is used as
+           the symmetry axis).
     """
 
-    e = (C[0][0] - C[2][2]) / (2*C[2][2])
-    d = (((C[0][2] + C[3][3])**2 - (C[2][2] - C[3][3])**2) /
-         (2*C[2][2]*(C[2][2] - C[3][3])))
-    y = (C[5][5] - C[3][3]) / (2*C[3][3])
+    e2 = (C[0][0] - C[2][2]) / (2*C[2][2])
+    y2 = (C[5][5] - C[3][3]) / (2*C[3][3])
+    d2 = (((C[0][2] + C[4][4])**2 - (C[2][2] - C[4][4])**2) /
+          (2*C[2][2]*(C[2][2] - C[4][4])))
 
-    return(e, d, y)
+    e1 = (C[1][1] - C[2][2]) / (2*C[2][2])
+    y1 = (C[5][5] - C[4][4]) / (2*C[4][4])
+    d1 = (((C[1][2] + C[3][3])**2 - (C[2][2] - C[3][3])**2) /
+          (2*C[2][2]*(C[2][2] - C[3][3])))
+
+    d3 = (((C[0][1] + C[5][5])**2 - (C[0][0] - C[5][5])**2) /
+          (2*C[0][0]*(C[0][0] - C[5][5])))
+
+    vp = np.sqrt(C[2][2]/p)
+    vs = np.sqrt(C[4][4]/p)
+
+    return(vp, vs, e1, d1, y1, e2, d2, y2, d3)
+
+
+def Cij(Vp, Vs, p, e1, d1, y1, e2, d2, y2, d3):
+    """
+    Returns the elastic stiffness elements C11, C33, C13, C55, and C66 that
+    characterize transversely isotropic materials, using the Thomsen parameters
+    and elastic parameters.
+    """
+    C = np.zeros(shape=(6, 6))
+
+    # On-diagonal components
+    C[2][2] = p*Vp**2
+    C[4][4] = p*Vs**2
+    C[0][0] = C[2][2]*(2*e2 + 1)
+    C[1][1] = C[2][2]*(2*e1 + 1)
+    C[5][5] = C[4][4]*(2*y1 + 1)
+    C[3][3] = C[5][5]*(2*y2 + 1)
+
+    # Off-diagonal
+    C[0][2] = np.sqrt((C[2][2] - C[4][4])**2 + 2*C[2][2]*(C[2][2] - C[4][4])*d2) - C[4][4]
+    C[1][2] = np.sqrt((C[2][2] - C[3][3])**2 + 2*C[2][2]*(C[2][2] - C[3][3])*d1) - C[3][3]
+    C[0][1] = np.sqrt((C[0][0] - C[5][5])**2 + 2*C[0][0]*(C[0][0] - C[5][5])*d3) - C[5][5]
+
+    # Exploit symmetry to fill out matrix
+    C[2][0] = C[0][2]
+    C[2][1] = C[1][2]
+    C[1][0] = C[0][1]
+
+    return(C)
 
 
 def ruger_vti(Vp1, Vs1, p1, e1, d1,
@@ -229,6 +296,7 @@ def ruger_vti(Vp1, Vs1, p1, e1, d1,
     vertically transverse isotropy using the equations of Thomsen (1992) and
     Ruger (1997).
     """
+    theta1 = np.radians(theta1)
     theta2, thetas1, thetas2, p = snell(Vp1, Vp2, Vs1, Vs2, theta1)
     theta = (theta1 + theta2)/2
     theta = theta1
@@ -260,9 +328,9 @@ def ruger_vti(Vp1, Vs1, p1, e1, d1,
     return(Rpp)
 
 
-def exact_vti(V1, V2, V3, V4, p1, p2, theta1,
-              C1_11, C1_13, C1_33, C1_55,
-              C2_11, C2_13, C2_33, C2_55):
+def daley_hron_vti(V1, V2, V3, V4, p1, p2, theta1,
+                   C1_11, C1_13, C1_33, C1_55,
+                   C2_11, C2_13, C2_33, C2_55):
     """
     Returns the exact reflectivity coefficients for a VTI medium computed using
     the relations of Daley and Hron (1977).
@@ -278,6 +346,7 @@ def exact_vti(V1, V2, V3, V4, p1, p2, theta1,
 
     # TODO: There's gotta be a better way to implement these equation than
     #       transcribing them from the 1977 paper. This is insane.
+    theta1 = np.radians(theta1)
     theta2, theta3, theta4, p = snell(V1, V2, V3, V4, theta1)
 
     x = np.sin(theta1)
@@ -369,14 +438,476 @@ def exact_vti(V1, V2, V3, V4, p1, p2, theta1,
     return(Rpp)
 
 
-def avoa_hti():
+def ruger_hti(Vp1, Vs1, p1, ev1, dv1, y1,
+              Vp2, Vs2, p2, ev2, dv2, y2,
+              theta1, phi):
     """
     Calculate P-wave reflection coefficient (Rpp) as a function of incidence
     angle and azimuth for an anisotropic material with horizontal transverse
-    isotropy.
+    isotropy using the Ruger [1996] approximation.
     """
-    return None
+    theta1 = np.radians(theta1)
+    phi = np.radians(phi)
+
+    theta2, thetas1, thetas2, p = snell(Vp1, Vp2, Vs1, Vs2, theta1)
+    u1 = p1*Vs1**2
+    u2 = p2*Vs2**2
+    Z1 = p1*Vp1
+    Z2 = p2*Vp2
+
+    a = (Vp1 + Vp2)/2
+    B = (Vs1 + Vs2)/2
+    Z = (Z1 + Z2)/2
+    u = (u1 + u2)/2
+
+    dZ = Z2 - Z1
+    da = Vp2 - Vp1
+    du = u2 - u1
+    ddv = dv2 - dv1
+    dev = ev2 - ev1
+    dy = y2 - y1
+
+    A = (1/2)*(dZ/Z)
+
+    B = (1/2)*(da/a - (2*B/a)**2*du/u + (ddv + 2*(2*B/a)**2*dy)*np.cos(phi)**2)
+
+    C = (1/2)*(da/a + dev*np.cos(phi)**4 + ddv*np.sin(phi)**2*np.cos(phi)**2)
+
+    Rpp = A + B*np.sin(theta1)**2 + C*np.sin(theta1)**2*np.tan(theta1)**2
+
+    return(Rpp)
 
 
-def avoa_ortho():
-    return None
+def elastic_impedance(Vp, Vs, p, theta):
+    """
+    Calculate the incidence-angle dependent elastic impedance of
+    a material. Uses the Aki and Richards approximation for
+    isotropic reflection coefficients.
+    """
+    K = (Vs/Vp)**2
+    Ie = (Vp**(1 + np.tan(theta)**2) *
+          p**(1 - 4*K*np.sin(theta)**2) *
+          Vs**(-8*K*np.sin(theta)**2))
+
+    return(Ie)
+
+
+def extended_elastic_impedance(Vp, Vs, p, chi, Vp0=1, Vs0=1, p0=1):
+    """
+    Calculate the Extended Elastic Impedance of Whitcombe [2002] of a material.
+    """
+    K = (Vs/Vp)**2
+    Iee = ((Vp0 * p0) *
+           (Vp / Vp0)**(np.cos(chi) + np.sin(chi)) *
+           (p / p0)**(np.cos(chi) - 4*K*np.sin(chi)) *
+           (Vs / Vs0)**(-8*K*np.sin(chi)))
+
+    return(Iee)
+
+
+def slowness_surface(C, chi, p):
+    phi = np.arange(0, 180, 1)
+    phi = np.radians(phi)
+    theta = np.arange(0, 90, 1)
+    theta = np.radians(theta)
+    chi = np.radians(chi)
+
+    S = np.array(shape=(181, 91))
+
+    schi = np.sin(chi)
+    cchi = np.cos(chi)
+    G1 = [[cchi**2, schi**2, 0, 0, 0, 2*cchi*schi],
+          [schi**2, cchi**2, 0, 0, 0, -2*schi*cchi],
+          [0, 0, 1, 0, 0, 0],
+          [0, 0, 0, cchi, -schi, 0],
+          [0, 0, 0, schi, cchi,  0],
+          [-cchi*schi, cchi*schi, 0, 0, 0, cchi**2 - schi**2]]
+    G1 = np.asarray(G1)
+    # Rotate stiffness matrices
+    C = G1.dot(C).dot(G1.T)
+
+    for n in theta:
+        for m in phi:
+            # Propagation vector (directional, no velocity information)
+            n = np.array([np.cos(phi)*np.sin(theta),
+                          np.sin(phi)*np.sin(theta),
+                          np.cos(theta)])
+
+            # Construct Christoffel matrix
+            L = christoffel(C1, n)
+            # Compute eigenvectors and eigenvalues of Christoffel matrix.
+            w, v = np.linalg.eig(L/p)
+            # quasi-P velocity of the upper medium, in the direction of propagation.
+            vp1 = np.sqrt(np.max(w))
+            # Slowness vector using derived quasi-P velocity.
+            S[n][m] = np.sqrt((n / vp1).dot(n / vp1))
+
+
+def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
+    """
+    Calculate the exact Zoeppritz equations for an HTI medium using the
+    Schoenberg and Protazio [1992] formulation.
+    """
+
+    phi = np.radians(phi)
+    theta = np.radians(theta)
+    chi1 = np.radians(chi1)
+    chi2 = np.radians(chi2)
+
+    # Black magic begins here...
+    # Adding a very small percentage of whitening to the input matrices seems
+    # to stabilize the solution???
+    norm1 = np.linalg.norm(C1)
+    norm2 = np.linalg.norm(C2)
+    C1 = C1 + 0.00001*norm1*np.random.rand(6, 6)
+    C2 = C2 + 0.00001*norm2*np.random.rand(6, 6)
+    # End black magic
+
+    # Construct rotation matrices to properly align the
+    # HTI porion of the orthorhombic anisotropy.
+    schi = np.sin(chi1)
+    cchi = np.cos(chi1)
+    G1 = [[cchi**2, schi**2, 0, 0, 0, 2*cchi*schi],
+          [schi**2, cchi**2, 0, 0, 0, -2*schi*cchi],
+          [0, 0, 1, 0, 0, 0],
+          [0, 0, 0, cchi, -schi, 0],
+          [0, 0, 0, schi, cchi,  0],
+          [-cchi*schi, cchi*schi, 0, 0, 0, cchi**2 - schi**2]]
+    G1 = np.asarray(G1)
+
+    schi = np.sin(chi2)
+    cchi = np.cos(chi2)
+    G2 = np.zeros(shape=(6, 6))
+    G2 = [[cchi**2, schi**2, 0, 0, 0, 2*cchi*schi],
+          [schi**2, cchi**2, 0, 0, 0, 2*schi*cchi],
+          [0, 0, 1, 0, 0, 0],
+          [0, 0, 0, cchi, -schi, 0],
+          [0, 0, 0, schi, cchi,  0],
+          [-cchi*schi, cchi*schi, 0, 0, 0, cchi**2 - schi**2]]
+    G2 = np.asarray(G2)
+
+    # Rotate stiffness matrices
+    C1 = G1.dot(C1).dot(G1.T)
+    C2 = G2.dot(C2).dot(G2.T)
+
+    ########################################
+    # SLOWNESS VECTOR OF THE INCIDENT WAVE
+    ########################################
+
+    # Construct Christoffel matrices in the velocity form as the first step
+    # towards determining the phase velocity and phase polarization vectors
+    # in the direction of propagation
+    # (that is, the slowness vector of the incident phase).
+
+    # Propagation vector (directional, no velocity information)
+    n = np.array([np.cos(phi)*np.sin(theta),
+                  np.sin(phi)*np.sin(theta),
+                  np.cos(theta)])
+
+    # Construct Christoffel matrix
+    L = christoffel(C1, n)
+    # Compute eigenvectors and eigenvalues of Christoffel matrix.
+    w, v = np.linalg.eig(L/p1)
+    # quasi-P velocity of the upper medium, in the direction of propagation.
+    vp1 = np.sqrt(np.max(w))
+    # Slowness vector using derived quasi-P velocity.
+    s = n / vp1
+
+    ########################################
+    # SLOWNESS VECTORS OF REFLECTED WAVES
+    ########################################
+
+    # Compute the coefficients of the bicubic equation from the stiffness
+    # matrix of the upper layer, density, and the two horizontal components
+    # of slowness.
+    A, B, C, D = monoclinic_bicubic_coeffs(s[0], s[1], p1, C1)
+    # Input the computed coefficients and solve the bicubic polynomial
+    z = np.sort(np.roots(np.array([A, B, C, D])))
+    s1P = np.array([s[0], s[1], np.sqrt(np.abs(z[0]))])
+    s1S = np.array([s[0], s[1], np.sqrt(np.abs(z[1]))])
+    s1T = np.array([s[0], s[1], np.sqrt(np.abs(z[2]))])
+
+    ########################################
+    # SLOWNESS VECTORS OF TRANSMITTED WAVES
+    ########################################
+
+    # Compute the coefficients of the bicubic equation from the stiffness
+    # matrix of the upper layer, density, and the two horizontal components
+    # of slowness.
+    A, B, C, D = monoclinic_bicubic_coeffs(s[0], s[1], p2, C2)
+    # Input the computed coefficients and solve the bicubic polynomial
+    z = np.sort(np.roots(np.array([A, B, C, D])))
+    s2P = np.array([s[0], s[1], np.sqrt(np.abs(z[0]))])
+    s2S = np.array([s[0], s[1], np.sqrt(np.abs(z[1]))])
+    s2T = np.array([s[0], s[1], np.sqrt(np.abs(z[2]))])
+
+    ########################################
+    # POLARIZATION VECTORS OF REFLECTED WAVES
+    ########################################
+
+    # Construct the Christoffel matrices for the three upper phases,
+    # and compute the eigensystem of the matrices.
+
+    # #### REFLECTED QUASI-P PHASE
+    CM1P = christoffel(C1, s1P)
+    w, v = np.linalg.eig(CM1P)
+    ev1P = v[:, 0]
+
+    # #### REFLECTED QUASI-S PHASE
+    CM1S = christoffel(C1, s1S)
+    w, v = np.linalg.eig(CM1S)
+    ev1S = v[:, 1]
+
+    # #### REFLECTED QUASI-T PHASE
+    CM1T = christoffel(C1, s1T)
+    w, v = np.linalg.eig(CM1T)
+    ev1T = -v[:, 2]
+
+    # Match up quasi-SV and quasi-SH with the proper eigenvalues/eigenvectors
+    if np.sum(ev1T*n) > np.sum(ev1S*n):
+        print('swapping upper shears')
+        foo = s1S
+        s1S = s1T
+        s1T = foo
+
+        foo = ev1S
+        ev1S = ev1T
+        ev1T = foo
+
+    ########################################
+    # POLARIZATION VECTORS OF TRANSMITTED WAVES
+    ########################################
+
+    # #### LOWER LAYER P PHASE
+    CM2P = christoffel(C2, s2P)
+    w, v = np.linalg.eig(CM2P)
+    ev2P = v[:, 0]
+
+    # #### LOWER LAYER S PHASE
+    CM2S = christoffel(C2, s2S)
+    w, v = np.linalg.eig(CM2S)
+    ev2S = v[:, 1]
+
+    # #### LOWER LAYER T PHASE
+    CM2T = christoffel(C2, s2T)
+    w, v = np.linalg.eig(CM2T)
+    ev2T = -v[:, 2]
+
+    # Match up quasi-SV and quasi-SH with the proper eigenvalues/eigenvectors
+    if np.sum(ev2T*n) > np.sum(ev2S*n):
+        print('swapping lower shears')
+        foo = s2S
+        s2S = s2T
+        s2T = foo
+
+        foo = ev2S
+        ev2S = ev2T
+        ev2T = foo
+
+    # Construct X, Y, X', and Y' impedance matrices
+    # #### UPPER MEDIUM
+    X1 = np.zeros(shape=(3, 3))
+    X1[0][0] = ev1P[0]
+    X1[0][1] = ev1S[0]
+    X1[0][2] = ev1T[0]
+    X1[1][0] = ev1P[1]
+    X1[1][1] = ev1S[1]
+    X1[1][2] = ev1T[1]
+    X1[2][0] = -(C1[0][2]*ev1P[0] + C1[2][5]*ev1P[1])*s1P[0] - (C1[1][2]*ev1P[1] + C1[2][5]*ev1P[0])*s1P[1] - C1[2][2]*ev1P[2]*s1P[2]
+    X1[2][1] = -(C1[0][2]*ev1S[0] + C1[2][5]*ev1S[1])*s1S[0] - (C1[1][2]*ev1S[1] + C1[2][5]*ev1S[0])*s1S[1] - C1[2][2]*ev1S[2]*s1S[2]
+    X1[2][2] = -(C1[0][2]*ev1T[0] + C1[2][5]*ev1S[1])*s1T[0] - (C1[1][2]*ev1T[1] + C1[2][5]*ev1T[0])*s1T[1] - C1[2][2]*ev1T[2]*s1T[2]
+
+    Y1 = np.zeros(shape=(3, 3))
+    Y1[0][0] = (-(C1[4][4]*s1P[0] + C1[3][4]*s1P[1])*ev1P[2] -
+                 (C1[4][4]*ev1P[0] + C1[3][4]*ev1P[1])*s1P[2])
+    Y1[0][1] = (-(C1[4][4]*s1S[0] + C1[3][4]*s1S[1])*ev1S[2] -
+                 (C1[4][4]*ev1S[0] + C1[3][4]*ev1S[1])*s1S[2])
+    Y1[0][2] = (-(C1[4][4]*s1T[0] + C1[3][4]*s1T[1])*ev1T[2] -
+                 (C1[4][4]*ev1T[0] + C1[3][4]*ev1T[1])*s1T[2])
+    Y1[1][0] = (-(C1[3][4]*s1P[0] + C1[3][3]*s1P[1])*ev1P[2] -
+                 (C1[3][4]*ev1P[0] + C1[3][3]*ev1P[1])*s1P[2])
+    Y1[1][1] = (-(C1[3][4]*s1S[0] + C1[3][3]*s1S[1])*ev1S[2] -
+                 (C1[3][4]*ev1S[0] + C1[3][3]*ev1S[1])*s1S[2])
+    Y1[1][2] = (-(C1[3][4]*s1T[0] + C1[3][3]*s1T[1])*ev1T[2] -
+                 (C1[3][4]*ev1T[0] + C1[3][3]*ev1T[1])*s1T[2])
+    Y1[2][0] = ev1P[2]
+    Y1[2][1] = ev1S[2]
+    Y1[2][2] = ev1T[2]
+
+    # ### LOWER MEDIUM
+    X2 = np.zeros(shape=(3, 3))
+    X2[0][0] = ev2P[0]
+    X2[0][1] = ev2S[0]
+    X2[0][2] = ev2T[0]
+    X2[1][0] = ev2P[1]
+    X2[1][1] = ev2S[1]
+    X2[1][2] = ev2T[1]
+    X2[2][0] = -(C2[0][2]*ev2P[0] + C2[2][5]*ev2P[1])*s2P[0] - (C2[1][2]*ev2P[1] + C2[2][5]*ev2P[0])*s2P[1] - C2[2][2]*ev2P[2]*s2P[2]
+    X2[2][1] = -(C2[0][2]*ev2S[0] + C2[2][5]*ev2S[1])*s2S[0] - (C2[1][2]*ev2S[1] + C2[2][5]*ev2S[0])*s2S[1] - C2[2][2]*ev2S[2]*s2S[2]
+    X2[2][2] = -(C2[0][2]*ev2T[0] + C2[2][5]*ev2S[1])*s2T[0] - (C2[1][2]*ev2T[1] + C2[2][5]*ev2T[0])*s2T[1] - C2[2][2]*ev2T[2]*s2T[2]
+
+    Y2 = np.zeros(shape=(3, 3))
+    Y2[0][0] = (-(C2[4][4]*s2P[0] +
+                  C2[3][4]*s2P[1])*ev2P[2] -
+                 (C2[4][4]*ev2P[0] +
+                  C2[3][4]*ev2P[1])*s2P[2])
+    Y2[0][1] = (-(C2[4][4]*s2S[0] +
+                  C2[3][4]*s2S[1])*ev2S[2] -
+                 (C2[4][4]*ev2S[0] + C2[3][4]*ev2S[1])*s2S[2])
+    Y2[0][2] = (-(C2[4][4]*s2T[0] + C2[3][4]*s2T[1])*ev2T[2] -
+                 (C2[4][4]*ev2T[0] + C2[3][4]*ev2T[1])*s2T[2])
+    Y2[1][0] = (-(C2[3][4]*s2P[0] + C2[3][3]*s2P[1])*ev2P[2] -
+                 (C2[3][4]*ev2P[0] + C2[3][3]*ev2P[1])*s2P[2])
+    Y2[1][1] = (-(C2[3][4]*s2S[0] + C2[3][3]*s2S[1])*ev2S[2] -
+                 (C2[3][4]*ev2S[0] + C2[3][3]*ev2S[1])*s2S[2])
+    Y2[1][2] = (-(C2[3][4]*s2T[0] + C2[3][3]*s2T[1])*ev2T[2] -
+                 (C2[3][4]*ev2T[0] + C2[3][3]*ev2T[1])*s2T[2])
+    Y2[2][0] = ev2P[2]
+    Y2[2][1] = ev2S[2]
+    Y2[2][2] = ev2T[2]
+
+    # Solve the X, Y, X', Y' system of equations for
+    # the Zoeppritz reflection matrix R
+    T = np.linalg.inv(np.linalg.inv(X1).dot(X2) + np.linalg.inv(Y1).dot(Y2))
+    R = (np.linalg.inv(X1).dot(X2) - np.linalg.inv(Y1).dot(Y2)).dot(T)
+
+    return(R[0][0])
+
+
+def monoclinic_bicubic_coeffs(s1, s2, p, C):
+    c11 = C[0][0]
+    c22 = C[1][1]
+    c33 = C[2][2]
+    c44 = C[3][3]
+    c55 = C[4][4]
+    c66 = C[5][5]
+    c12 = C[0][1]
+    c13 = C[0][2]
+    c23 = C[1][2]
+    c16 = C[0][5]
+    c26 = C[1][5]
+    c36 = C[2][5]
+    c45 = C[3][4]
+    A = (c33*c44*c55 - c33*c45**2)
+    B = (c11*c33*c44*s1**2 - 2*c12*c33*c45*s1*s2 - c13**2*c44*s1**2 +
+         2*c13*c23*c45*s1*s2 - 2*c13*c36*c44*s1*s2 + 2*c13*c36*c45*s1**2 -
+         2*c13*c44*c55*s1**2 + 2*c13*c45**2*s1**2 + 2*c16*c33*c44*s1*s2 -
+         2*c16*c33*c45*s1**2 + c22*c33*c55*s2**2 - c23**2*c55*s2**2 +
+         2*c23*c36*c45*s2**2 - 2*c23*c36*c55*s1*s2 - 2*c23*c44*c55*s2**2 +
+         2*c23*c45**2*s2**2 - 2*c26*c33*c45*s2**2 + 2*c26*c33*c55*s1*s2 +
+         c33*c44*c66*s2**2 - c33*c44*p - 2*c33*c45*c66*s1*s2 +
+         c33*c55*c66*s1**2 - c33*c55*p - c36**2*c44*s2**2 +
+         2*c36**2*c45*s1*s2 - c36**2*c55*s1**2 - 4*c36*c44*c55*s1*s2 +
+         4*c36*c45**2*s1*s2 - c44*c55*p + c45**2*p)
+    C = (c11*c22*c33*s1**2*s2**2 - c11*c23**2*s1**2*s2**2 -
+         2*c11*c23*c36*s1**3*s2 - 2*c11*c23*c44*s1**2*s2**2 -
+         2*c11*c23*c45*s1**3*s2 + 2*c11*c26*c33*s1**3*s2 +
+         c11*c33*c66*s1**4 - c11*c33*p*s1**2 - c11*c36**2*s1**4 -
+         2*c11*c36*c44*s1**3*s2 - 2*c11*c36*c45*s1**4 + c11*c44*c55*s1**4 -
+         c11*c44*p*s1**2 - c11*c45**2*s1**4 - c12**2*c33*s1**2*s2**2 +
+         2*c12*c13*c23*s1**2*s2**2 + 2*c12*c13*c36*s1**3*s2 +
+         2*c12*c13*c44*s1**2*s2**2 + 2*c12*c13*c45*s1**3*s2 -
+         2*c12*c16*c33*s1**3*s2 + 2*c12*c23*c36*s1*s2**3 +
+         2*c12*c23*c45*s1*s2**3 + 2*c12*c23*c55*s1**2*s2**2 -
+         2*c12*c26*c33*s1*s2**3 - 2*c12*c33*c66*s1**2*s2**2 +
+         2*c12*c36**2*s1**2*s2**2 + 2*c12*c36*c44*s1*s2**3 +
+         4*c12*c36*c45*s1**2*s2**2 + 2*c12*c36*c55*s1**3*s2 +
+         2*c12*c44*c55*s1**2*s2**2 - 2*c12*c45**2*s1**2*s2**2 +
+         2*c12*c45*p*s1*s2 - c13**2*c22*s1**2*s2**2 -
+         2*c13**2*c26*s1**3*s2 - c13**2*c66*s1**4 + c13**2*p*s1**2 +
+         2*c13*c16*c23*s1**3*s2 + 2*c13*c16*c36*s1**4 +
+         2*c13*c16*c44*s1**3*s2 + 2*c13*c16*c45*s1**4 -
+         2*c13*c22*c36*s1*s2**3 - 2*c13*c22*c45*s1*s2**3 -
+         2*c13*c22*c55*s1**2*s2**2 + 2*c13*c23*c26*s1*s2**3 +
+         2*c13*c23*c66*s1**2*s2**2 - 2*c13*c26*c36*s1**2*s2**2 +
+         2*c13*c26*c44*s1*s2**3 - 2*c13*c26*c45*s1**2*s2**2 -
+         4*c13*c26*c55*s1**3*s2 + 2*c13*c36*p*s1*s2 +
+         2*c13*c44*c66*s1**2*s2**2 + 2*c13*c45*p*s1*s2 - 2*c13*c55*c66*s1**4 +
+         2*c13*c55*p*s1**2 - c16**2*c33*s1**4 + 2*c16*c22*c33*s1*s2**3 -
+         2*c16*c23**2*s1*s2**3 - 2*c16*c23*c36*s1**2*s2**2 -
+         4*c16*c23*c44*s1*s2**3 - 2*c16*c23*c45*s1**2*s2**2 +
+         2*c16*c23*c55*s1**3*s2 + 2*c16*c26*c33*s1**2*s2**2 -
+         2*c16*c33*p*s1*s2 - 2*c16*c36*c44*s1**2*s2**2 + 2*c16*c36*c55*s1**4 +
+         4*c16*c44*c55*s1**3*s2 - 2*c16*c44*p*s1*s2 - 4*c16*c45**2*s1**3*s2 +
+         2*c16*c45*p*s1**2 + c22*c33*c66*s2**4 - c22*c33*p*s2**2 -
+         c22*c36**2*s2**4 - 2*c22*c36*c45*s2**4 - 2*c22*c36*c55*s1*s2**3 +
+         c22*c44*c55*s2**4 - c22*c45**2*s2**4 - c22*c55*p*s2**2 -
+         c23**2*c66*s2**4 + c23**2*p*s2**2 + 2*c23*c26*c36*s2**4 +
+         2*c23*c26*c45*s2**4 + 2*c23*c26*c55*s1*s2**3 + 2*c23*c36*p*s1*s2 -
+         2*c23*c44*c66*s2**4 + 2*c23*c44*p*s2**2 + 2*c23*c45*p*s1*s2 +
+         2*c23*c55*c66*s1**2*s2**2 - c26**2*c33*s2**4 - 2*c26*c33*p*s1*s2 +
+         2*c26*c36*c44*s2**4 - 2*c26*c36*c55*s1**2*s2**2 +
+         4*c26*c44*c55*s1*s2**3 - 4*c26*c45**2*s1*s2**3 +
+         2*c26*c45*p*s2**2 - 2*c26*c55*p*s1*s2 - c33*c66*p*s1**2 -
+         c33*c66*p*s2**2 + c33*p**2 + c36**2*p*s1**2 +
+         c36**2*p*s2**2 + 2*c36*c44*p*s1*s2 + 2*c36*c45*p*s1**2 +
+         2*c36*c45*p*s2**2 + 2*c36*c55*p*s1*s2 + 4*c44*c55*c66*s1**2*s2**2 -
+         c44*c55*p*s1**2 - c44*c55*p*s2**2 - c44*c66*p*s2**2 +
+         c44*p**2 - 4*c45**2*c66*s1**2*s2**2 + c45**2*p*s1**2 +
+         c45**2*p*s2**2 + 2*c45*c66*p*s1*s2 - c55*c66*p*s1**2 + c55*p**2)
+    D = (c11*c22*c44*s1**2*s2**4 + 2*c11*c22*c45*s1**3*s2**3 +
+         c11*c22*c55*s1**4*s2**2 - c11*c22*p*s1**2*s2**2 +
+         2*c11*c26*c44*s1**3*s2**3 + 4*c11*c26*c45*s1**4*s2**2 +
+         2*c11*c26*c55*s1**5*s2 - 2*c11*c26*p*s1**3*s2 +
+         c11*c44*c66*s1**4*s2**2 - c11*c44*p*s1**2*s2**2 +
+         2*c11*c45*c66*s1**5*s2 - 2*c11*c45*p*s1**3*s2 +
+         c11*c55*c66*s1**6 - c11*c55*p*s1**4 - c11*c66*p*s1**4 +
+         c11*p**2*s1**2 - c12**2*c44*s1**2*s2**4 - 2*c12**2*c45*s1**3*s2**3 -
+         c12**2*c55*s1**4*s2**2 + c12**2*p*s1**2*s2**2 -
+         2*c12*c16*c44*s1**3*s2**3 - 4*c12*c16*c45*s1**4*s2**2 -
+         2*c12*c16*c55*s1**5*s2 + 2*c12*c16*p*s1**3*s2 -
+         2*c12*c26*c44*s1*s2**5 - 4*c12*c26*c45*s1**2*s2**4 -
+         2*c12*c26*c55*s1**3*s2**3 + 2*c12*c26*p*s1*s2**3 -
+         2*c12*c44*c66*s1**2*s2**4 - 4*c12*c45*c66*s1**3*s2**3 -
+         2*c12*c55*c66*s1**4*s2**2 + 2*c12*c66*p*s1**2*s2**2 -
+         c16**2*c44*s1**4*s2**2 - 2*c16**2*c45*s1**5*s2 - c16**2*c55*s1**6 +
+         c16**2*p*s1**4 + 2*c16*c22*c44*s1*s2**5 + 4*c16*c22*c45*s1**2*s2**4 +
+         2*c16*c22*c55*s1**3*s2**3 - 2*c16*c22*p*s1*s2**3 +
+         2*c16*c26*c44*s1**2*s2**4 + 4*c16*c26*c45*s1**3*s2**3 +
+         2*c16*c26*c55*s1**4*s2**2 - 2*c16*c26*p*s1**2*s2**2 -
+         2*c16*c44*p*s1*s2**3 - 4*c16*c45*p*s1**2*s2**2 -
+         2*c16*c55*p*s1**3*s2 + 2*c16*p**2*s1*s2 + c22*c44*c66*s2**6 -
+         c22*c44*p*s2**4 + 2*c22*c45*c66*s1*s2**5 - 2*c22*c45*p*s1*s2**3 +
+         c22*c55*c66*s1**2*s2**4 - c22*c55*p*s1**2*s2**2 -
+         c22*c66*p*s2**4 + c22*p**2*s2**2 - c26**2*c44*s2**6 -
+         2*c26**2*c45*s1*s2**5 - c26**2*c55*s1**2*s2**4 + c26**2*p*s2**4 -
+         2*c26*c44*p*s1*s2**3 - 4*c26*c45*p*s1**2*s2**2 -
+         2*c26*c55*p*s1**3*s2 + 2*c26*p**2*s1*s2 - c44*c66*p*s1**2*s2**2 -
+         c44*c66*p*s2**4 + c44*p**2*s2**2 - 2*c45*c66*p*s1**3*s2 -
+         2*c45*c66*p*s1*s2**3 + 2*c45*p**2*s1*s2 - c55*c66*p*s1**4 -
+         c55*c66*p*s1**2*s2**2 + c55*p**2*s1**2 + c66*p**2*s1**2 +
+         c66*p**2*s2**2 - p**3)
+    return(A, B, C, D)
+
+
+def christoffel(C, s):
+    CM = np.zeros(shape=(3, 3))
+    CM[0][0] = (C[0][0]*s[0]**2 +
+                C[5][5]*s[1]**2 +
+                C[4][4]*s[2]**2 +
+                2*C[0][5]*s[0]*s[1])
+    CM[0][1] = (C[0][5]*s[0]**2 +
+                C[1][5]*s[1]**2 +
+                C[3][4]*s[2]**2 +
+                (C[0][1]+C[5][5])*s[0]*s[1])
+    CM[0][2] = ((C[0][2]+C[4][4])*s[0]*s[2] +
+                (C[2][5]+C[3][4])*s[1]*s[2])
+    CM[1][0] = (C[0][5]*s[0]**2 +
+                C[1][5]*s[1]**2 +
+                C[3][4]*s[2]**2 +
+                (C[0][1]+C[5][5])*s[0]*s[1])
+    CM[1][1] = (C[5][5]*s[0]**2 +
+                C[1][1]*s[1]**2 +
+                C[3][3]*s[2]**2 +
+                2*C[1][5]*s[0]*s[1])
+    CM[1][2] = ((C[2][5]+C[3][4])*s[0]*s[2] +
+                (C[1][2]+C[3][3])*s[1]*s[2])
+    CM[2][0] = ((C[0][2]+C[4][4])*s[0]*s[2] +
+                (C[2][5]+C[3][4])*s[1]*s[2])
+    CM[2][1] = ((C[2][5]+C[3][4])*s[0]*s[2] +
+                (C[3][3]+C[1][2])*s[1]*s[2])
+    CM[2][2] = (C[4][4]*s[0]**2 +
+                C[3][3]*s[1]**2+C[2][2]*s[2]**2 +
+                2*C[3][4]*s[0]*s[1])
+
+    return(CM)
