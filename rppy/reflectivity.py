@@ -473,7 +473,7 @@ def ruger_hti(Vp1, Vs1, p1, ev1, dv1, y1,
 
     C = (1/2)*(da/a + dev*np.cos(phi)**4 + ddv*np.sin(phi)**2*np.cos(phi)**2)
 
-    Rpp = A + B*np.sin(theta1)**2 + C*np.sin(theta1)**2*np.tan(theta1)**2
+    Rpp = A + B*np.sin(theta)**2 + C*np.sin(theta)**2*np.tan(theta)**2
 
     return(Rpp)
 

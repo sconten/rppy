@@ -160,16 +160,87 @@ def test_Cij():
     assert np.abs(C[0][2] - C2[0][2])/C2[0][2] < err
 
 
-def test_daley_hron_vti():
-    assert 0 == 1
+#def test_daley_hron_vti_against_crewes():
+#    err = 0.05
+#    vp1 = 3000
+#    vs1 = 1500
+#    p1 = 2000
+#    e1 = 0.0
+#    d1 = 0.0
+#
+#    vp2 = 4000
+#    vs2 = 2000
+#    p2 = 2200
+#    e2 = 0.1
+#    d2 = 0.1
+#
+#    theta = np.array([0.94406, 4.8601, 9.2657, 13.916, 18.811, 23.462, 27.622,
+#                      32.028, 33.986, 35.699, 37.657, 38.392, 39.860, 40.105,
+#                      40.594, 41.084, 41.818, 42.063])
+#    exp = np.array([0.18993, 0.19006, 0.18778, 0.18550, 0.18567, 0.18340,
+#                    0.19330, 0.21540, 0.23742, 0.26187, 0.29852, 0.33514,
+#                    0.37909, 0.41324, 0.45229, 0.48889, 0.53282, 0.57917])
+#    Rpp = rppy.reflectivity.daley_hron_vti(vp1, vs1, p1, vp2, vs2, p2, theta)
+#    for ind, val in enumerate(Rpp):
+#        assert np.abs(val - exp[ind])/exp[ind] < err
 
 
-def test_elastic_impedance():
-    assert 0 == 1
+#def test_elastic_impedance():
+#    assert 0 == 1
 
 
-def test_extended_elastic_impedance():
-    assert 0 == 1
+#def test_extended_elastic_impedance():
+#    assert 0 == 1
+
+
+def test_aki_richards_against_crewes():
+    err = 0.05
+    vp1 = 3000
+    vs1 = 1500
+    p1 = 2000
+
+    vp2 = 4000
+    vs2 = 2000
+    p2 = 2200
+
+    theta = np.array([1.2069, 3.6638, 6.2500, 8.3190, 10.259, 12.586, 14.526,
+                      16.336, 18.147, 19.828, 22.543, 25.259, 27.198, 30.690,
+                      33.922, 35.603, 37.414, 38.836, 40.388, 41.552, 42.716,
+                      44.655, 45.302, 45.819, 46.595, 46.983, 47.371])
+    exp = np.array([0.19370, 0.19119, 0.18866, 0.18618, 0.18370, 0.17887,
+                    0.17639, 0.17160, 0.16914, 0.16435, 0.15949, 0.15463,
+                    0.15216, 0.15188, 0.15396, 0.16081, 0.16997, 0.18149,
+                    0.19764, 0.21616, 0.23700, 0.29499, 0.32284,
+                    0.35536, 0.40181, 0.43667, 0.47617])
+    Rpp = rppy.reflectivity.aki_richards(vp1, vs1, p1, vp2, vs2, p2, theta)
+    for ind, val in enumerate(Rpp):
+        assert np.abs(val - exp[ind])/exp[ind] < err
+
+
+def test_bortfeld_against_crewes():
+    err = 0.05
+    vp1 = 3000
+    vs1 = 1500
+    p1 = 2000
+
+    vp2 = 4000
+    vs2 = 2000
+    p2 = 2200
+
+    theta = np.array([1.0526, 4.0789, 6.9737, 9.3421, 11.053, 12.632, 14.079,
+                      15.921, 18.684, 21.184, 24.079, 26.842, 31.842, 34.211,
+                      35.789, 37.237, 38.947, 40.263, 41.974, 43.026, 43.816,
+                      44.737, 45.395, 45.921, 46.447, 46.842, 47.237, 47.500,
+                      47.763, 47.895, 48.026, 48.158])
+    exp = np.array([0.19291, 0.19291, 0.19054, 0.18581, 0.18345, 0.18108,
+                    0.17635, 0.17399, 0.16926, 0.16453, 0.15980, 0.15507,
+                    0.15507, 0.15980, 0.16689, 0.17635, 0.19054, 0.20709,
+                    0.23547, 0.26385, 0.28750, 0.32534, 0.36081, 0.39865,
+                    0.44358, 0.49088, 0.53818, 0.58311, 0.64932, 0.68716,
+                    0.73919, 0.80304])
+    Rpp = rppy.reflectivity.bortfeld(vp1, vs1, p1, vp2, vs2, p2, theta)
+    for ind, val in enumerate(Rpp):
+        assert np.abs(val - exp[ind])/exp[ind] < err
 
 
 def test_zoeppritz_against_crewes():
@@ -192,6 +263,31 @@ def test_zoeppritz_against_crewes():
                     0.39638, 0.43280, 0.47408, 0.53480, 0.58582, 0.64900])
 
     Rpp = rppy.reflectivity.zoeppritz(vp1, vs1, p1, vp2, vs2, p2, theta)
+    for ind, val in enumerate(Rpp):
+        assert np.abs(val - exp[ind])/exp[ind] < err
+
+
+def test_smith_gidlow_against_crewes():
+    err = 0.05
+    vp1 = 3000
+    vs1 = 1500
+    p1 = 2000
+
+    vp2 = 4000
+    vs2 = 2000
+    p2 = 2200
+
+    theta = np.array([0.68966, 2.8879, 4.5690, 7.0259, 9.2241, 11.034, 13.233,
+                      15.560, 17.888, 20.216, 22.155, 24.483, 26.810, 29.784,
+                      32.112, 34.440, 36.250, 37.931, 39.741, 40.776, 42.069,
+                      43.233, 44.267, 45.043,45.690, 46.336, 46.853, 47.371])
+    exp = np.array([0.17979, 0.17962, 0.17484, 0.17465, 0.17215, 0.16969,
+                    0.16719, 0.16236, 0.15753, 0.15270, 0.15022, 0.14539,
+                    0.14288, 0.14265, 0.14247, 0.14694, 0.15378, 0.16760,
+                    0.18142, 0.19761, 0.21844, 0.24394, 0.27641, 0.30659,
+                    0.34142, 0.38556, 0.42970, 0.48082])
+
+    Rpp = rppy.reflectivity.smith_gidlow(vp1, vs1, p1, vp2, vs2, p2, theta)
     for ind, val in enumerate(Rpp):
         assert np.abs(val - exp[ind])/exp[ind] < err
 
@@ -291,8 +387,8 @@ def test_exact_orth_against_crewes():
 
 
 # Test media.py
-def test_han_eberhart_phillips():
-    assert 0 == 1
+#def test_han_eberhart_phillips():
+#    assert 0 == 1
 
 
 def test_kuster_toksoz():
@@ -350,14 +446,14 @@ def test_hashin_shtrikman():
     assert np.abs(ul - ule)/Kue < err
 
 
-def test_voight_reuss_hill():
-    assert 0 == 1
+#def test_voight_reuss_hill():
+#    assert 0 == 1
 
 
 # ========================================
 #           Test fluids.py
-def test_ciz_shapiro():
-    assert 0 == 1
+#def test_ciz_shapiro():
+#    assert 0 == 1
 
 
 def test_gassmann():
