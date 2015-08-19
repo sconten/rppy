@@ -191,11 +191,17 @@ def han(phi, C):
     return(Vp, Vs)
 
 
-def hertz_mindlin(u, v, P, n, phi):
+def hertz_mindlin(u, v, P, phi, n=None):
     """
     Elastic moduli of an elastic sphere pack subject to confing pressure given
     by the Hertz-Mindlin [Mindlin, 1949] theory.
+
+    If the coordination number n is not given, the function uses the empirical
+    dependency of n on porosity shown by Murphy [1982]
     """
+
+    if not n:
+        n = 20 - 34*phi + 14*phi**2
 
     Khm = ((n**2*(1-phi)**2*u**2*P) / (18*np.pi**2*(1-v)**2))**(1/3)
     uhm = ((5-4*v)/(10-5*v)) * ((3*n**2*(1-phi)**2*u**2*P) /
