@@ -180,6 +180,7 @@ def hudson():
     C2[5][5] = 0
     Ceff = C0 + C1 + C2
 
+
 def han(phi, C):
     """
     Han [1986] model for water-saturated sandstones at 40 MPa
@@ -193,8 +194,8 @@ def han(phi, C):
 
 def hertz_mindlin(u, v, P, phi, n=None):
     """
-    Elastic moduli of an elastic sphere pack subject to confing pressure given
-    by the Hertz-Mindlin [Mindlin, 1949] theory.
+    Elastic moduli of an elastic sphere pack subject to confining pressure
+    given by the Hertz-Mindlin [Mindlin, 1949] theory.
 
     If the coordination number n is not given, the function uses the empirical
     dependency of n on porosity shown by Murphy [1982]
@@ -208,3 +209,57 @@ def hertz_mindlin(u, v, P, phi, n=None):
                                 (2*np.pi**2*(1-v)**2))**(1/3)
 
     return(Khm, uhm)
+
+
+def cemented_sand(u, v, p, uc, vc, pc, phi, phi0=0.36, C=9, style='contact'):
+    """
+    Bulk and shear moduli of dry sand in which dement is deposity at grain
+    contacts. The cement is elastic, and may differ from that of the spherical
+    pack.
+
+    This may also referred to as the Dvorkin-Nur cement model
+    [Dvorkin and Nur, 1996]
+
+    style = 'contact' - All cement at grain contacts (default)
+    style = 'constant' - Cement deposited evenly on grain surface
+
+    If the critical porosity os not given, the functions uses 0.36
+
+    If the coordination number n is not given, the function uses the empirical
+    dependency of n on porosity shown by Murphy [1982]
+    """
+    import rppy.moduli as rpmod
+
+    if not C:
+        C = 20 - 34*phi + 14*phi**2
+
+    if style == 'contact':
+        a = 2*((phi0 - phi) / (3*C*(1 - phi0)))**0.25
+    elif style == 'constant':
+        a = ((2*(phi0 - phi)) / (3*(1 - phi0)))**0.5
+    else:
+        raise ValueError('You must specify either contact or constant cement.')
+
+    Vpc = rpmod.Vp(pc, u=uc, v=vc)
+    Vsc = rpmod.Vs(pc, u=uc, v=vc)
+
+    Ln = (2*uc*(1 - v)*(1 - vc)) / (np.pi*u*(1 - 2*vc))
+    Lt = uc / (np.pi*u)
+
+    An = -0.024153*Ln**(-1.3646)
+    Bn = 0.20405*Ln**(-0.89008)
+    Cn = 0.00024649*Ln**(-1.9864)
+    Sn = An*a**2 + Bn*a + Cn
+
+    At = -10**(-2)*(2.26*v**2 + 2.07*v + 2.3)*Lt**(0.079*v**2 + 0.1754*v - 1.342)
+    Bt = (0.0573*v**2 + 0.0937*v + 0.202)*Lt**(0.0274*v**2 + 0.0529*v - 0.8765)
+    Ct = 10**(-4)*(9.654*v**2 + 4.945*v + 3.1)*Lt**(0.01867*v**2 + 0.4011*v - 1.8186)
+    St = At*a**2 + Bt*a + Ct
+
+    Mc = pc*Vpc**2
+    uc = pc*Vsc**2
+
+    Keff = (1/6)*C*(1 - phi0)*Mc*Sn
+    ueff = (3/5)*Keff + (3/20)*C*(1 - phi0)*uc*St
+
+    return(Keff, ueff)
