@@ -450,16 +450,17 @@ def ruger_hti(Vp1, Vs1, p1, ev1, dv1, y1,
     phi = np.radians(phi)
 
     theta2, thetas1, thetas2, p = snell(Vp1, Vp2, Vs1, Vs2, theta1)
-    theta = (theta1 + theta2)/2
-    u1 = p1*Vs1**2
-    u2 = p2*Vs2**2
+    theta = (theta1 + theta2)/2.0
+    theta = theta1
+    u1 = p1*(Vs1**2)
+    u2 = p2*(Vs2**2)
     Z1 = p1*Vp1
     Z2 = p2*Vp2
 
-    a = (Vp1 + Vp2)/2
-    B = (Vs1 + Vs2)/2
-    Z = (Z1 + Z2)/2
-    u = (u1 + u2)/2
+    a = (Vp1 + Vp2)/2.0
+    B = (Vs1 + Vs2)/2.0
+    Z = (Z1 + Z2)/2.0
+    u = (u1 + u2)/2.0
 
     dZ = Z2 - Z1
     da = Vp2 - Vp1
@@ -468,11 +469,15 @@ def ruger_hti(Vp1, Vs1, p1, ev1, dv1, y1,
     dev = ev2 - ev1
     dy = y2 - y1
 
-    A = (1/2)*(dZ/Z)
+    A = (1./2.)*(dZ/Z)
 
-    B = (1/2)*(da/a - (2*B/a)**2*du/u + (ddv + 2*(2*B/a)**2*dy)*np.cos(phi)**2)
+    B = ((1./2.)*((da/a) -
+         ((2.*B/a)**2.)*(du/u) +
+         (ddv + 2.*((2.*B/a)**2.)*dy)*(np.cos(phi)**2.)))
 
-    C = (1/2)*(da/a + dev*np.cos(phi)**4 + ddv*np.sin(phi)**2*np.cos(phi)**2)
+    C = ((1./2.)*((da/a) +
+         dev*(np.cos(phi)**4.) +
+         ddv*(np.sin(phi)**2.)*(np.cos(phi)**2.)))
 
     Rpp = A + B*np.sin(theta)**2 + C*np.sin(theta)**2*np.tan(theta)**2
 
@@ -504,44 +509,6 @@ def extended_elastic_impedance(Vp, Vs, p, chi, Vp0=1, Vs0=1, p0=1):
            (Vs / Vs0)**(-8*K*np.sin(chi)))
 
     return(Iee)
-
-
-def slowness_surface(C, chi, p):
-    phi = np.arange(0, 180, 1)
-    phi = np.radians(phi)
-    theta = np.arange(0, 90, 1)
-    theta = np.radians(theta)
-    chi = np.radians(chi)
-
-    S = np.array(shape=(181, 91))
-
-    schi = np.sin(chi)
-    cchi = np.cos(chi)
-    G1 = [[cchi**2, schi**2, 0, 0, 0, 2*cchi*schi],
-          [schi**2, cchi**2, 0, 0, 0, -2*schi*cchi],
-          [0, 0, 1, 0, 0, 0],
-          [0, 0, 0, cchi, -schi, 0],
-          [0, 0, 0, schi, cchi,  0],
-          [-cchi*schi, cchi*schi, 0, 0, 0, cchi**2 - schi**2]]
-    G1 = np.asarray(G1)
-    # Rotate stiffness matrices
-    C = G1.dot(C).dot(G1.T)
-
-    for n in theta:
-        for m in phi:
-            # Propagation vector (directional, no velocity information)
-            n = np.array([np.cos(phi)*np.sin(theta),
-                          np.sin(phi)*np.sin(theta),
-                          np.cos(theta)])
-
-            # Construct Christoffel matrix
-            L = christoffel(C1, n)
-            # Compute eigenvectors and eigenvalues of Christoffel matrix.
-            w, v = np.linalg.eig(L/p)
-            # quasi-P velocity of the upper medium, in the direction of propagation.
-            vp1 = np.sqrt(np.max(w))
-            # Slowness vector using derived quasi-P velocity.
-            S[n][m] = np.sqrt((n / vp1).dot(n / vp1))
 
 
 def exact_ortho(C1, p1, C2, p2, chi1, chi2, phi, theta):
@@ -912,3 +879,45 @@ def christoffel(C, s):
                 2*C[3][4]*s[0]*s[1])
 
     return(CM)
+
+
+def vavrycuk_psencik_hti(vp1, vs1, p1, d1, e1, y1,
+                         vp2, vs2, p2, d2, e2, y2,
+                         phi, theta1):
+    """
+    Reflectivity for arbitrarily oriented HTI media, using the formulation
+    derived by Vavrycuk and Psencik [1998], "PP-wave reflection coefficients
+    in weakly anisotropic elastic media"
+    """
+    theta1 = np.radians(theta1)
+    phi = np.radians(phi)
+
+    theta2, thetas1, thetas2, p = snell(vp1, vp2, vs1, vs2, theta1)
+    theta = (theta1 + theta2)/2
+    theta = theta1
+    G1 = p1*(vs1**2)
+    G2 = p2*(vs2**2)
+    Z1 = p1*vp1
+    Z2 = p2*vp2
+
+    a = (vp1 + vp2)/2
+    B = (vs1 + vs2)/2
+    Z = (Z1 + Z2)/2
+    G = (G1 + G2)/2
+
+    dZ = Z2 - Z1
+    da = vp2 - vp1
+    dG = G2 - G1
+    dd = d2 - d1
+    de = e2 - e1
+    dy = y2 - y1
+
+    A = (1/2*(dZ/Z) +
+         1/2*(da/a)*np.tan(theta)**2 -
+         2*((B/a)**2)*(dG/G)*np.sin(theta)**2)
+    B = 1/2*(dd*(np.cos(phi)**2) - 8*((B/a)**2)*dy*(np.sin(phi)*2))
+    C = 1/2*(de*(np.cos(phi)**4) + dd*(np.cos(phi)**2)*(np.sin(phi)**2))
+
+    Rpp = A + B*np.sin(theta)**2 + C*np.sin(theta)**2*np.tan(theta)**2
+
+    return(Rpp)

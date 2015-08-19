@@ -153,3 +153,52 @@ def voight_reuss_hill(M, f):
     r = 1/np.sum(f/M)
     h = (v + r) / 2.
     return(v, r, h)
+
+
+def hudson():
+    """
+    Hudson's model for cracked media, based on a scattering-theory analysis of
+    the mean wavefield in an elastic solid with thin, p[enny-shaped ellipsoidal
+    cracks or inclusions (Hudson, 1980)
+    """
+
+    q = 15*(l**2)/(u**2) + 28*(l/u) + 28
+
+    U1 = (16*(l + 2*u))/(3*(3*l + 4*u))
+    U3 = (4*(l + 2*u))/(3*(l + u))
+
+    C1[0][0] = -l**2/u*e*U3
+    C1[0][2] = l(l + 2*u) / u*e*U3
+    C1[2][2] = (l + 2*u)**2 / u*e*U3
+    C1[3][3] = -u*e*U1
+    C1[5][5] = 0
+
+    C2[0][0] = q/15*l**2/(l+2*u)*(e*U3)**2
+    C2[0][2] = q/15*l*(e*U3)**2
+    C2[2][2] = q/15*(l+2*u)*(e*U3)**2
+    C2[3][3] = 2/15*u*(3*l+8*u)/(l+2*u)*(e*U1)**2
+    C2[5][5] = 0
+    Ceff = C0 + C1 + C2
+
+def han(phi, C):
+    """
+    Han [1986] model for water-saturated sandstones at 40 MPa
+    """
+
+    Vp = 5.59 - 6.93*phi - 2.13*C
+    Vs = 3.52 - 4.91*phi - 1.89*C
+
+    return(Vp, Vs)
+
+
+def hertz_mindlin(u, v, P, n, phi):
+    """
+    Elastic moduli of an elastic sphere pack subject to confing pressure given
+    by the Hertz-Mindlin [Mindlin, 1949] theory.
+    """
+
+    Khm = ((n**2*(1-phi)**2*u**2*P) / (18*np.pi**2*(1-v)**2))**(1/3)
+    uhm = ((5-4*v)/(10-5*v)) * ((3*n**2*(1-phi)**2*u**2*P) /
+                                (2*np.pi**2*(1-v)**2))**(1/3)
+
+    return(Khm, uhm)

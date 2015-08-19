@@ -358,6 +358,69 @@ def test_ruger_hti_against_crewes():
         assert np.abs(Rpp - exp[ind])/exp[ind] < err
 
 
+def test_vavrycuk_hti_against_rokdoc():
+    err = 0.05
+    vp1 = 3000
+    vs1 = 1500
+    p1 = 2000
+    e1 = 0
+    d1 = 0
+    y1 = 0
+
+    vp2 = 4000
+    vs2 = 2000
+    p2 = 2200
+    e2 = 0.1
+    d2 = 0.1
+    y2 = 0.1
+
+    phi = 45
+
+    theta = np.array([1.1990, 4.5726, 7.8040, 10.309, 13.254, 15.908,
+                      20.926, 23.583, 26.092, 28.450, 31.099, 33.891, 36.673,
+                      38.569, 40.752, 42.055, 43.354, 44.504, 45.793, 46.793,
+                      48.211, 49.054, 49.754, 50.740, 51.296, 51.991, 52.542,
+                      53.086, 53.638])
+    exp = np.array([0.18952, 0.18858, 0.18654, 0.18301, 0.17914, 0.17490,
+                    0.16566, 0.16068, 0.15606, 0.15253, 0.14937,
+                    0.14732, 0.14781, 0.15008, 0.15382, 0.15788, 0.16304,
+                    0.16855, 0.17626, 0.18285, 0.19493, 0.20407, 0.21248,
+                    0.22272, 0.23039, 0.23989, 0.24901, 0.25960, 0.26836])
+
+    for ind, thetav in enumerate(theta):
+        Rpp = rppy.reflectivity.vavrycuk_psencik_hti(vp1, vs1, p1, e1, d1, y1,
+                                                     vp2, vs2, p2, e2, d2, y2,
+                                                     phi, thetav)
+        assert np.abs(Rpp - exp[ind])/exp[ind] < err
+
+
+def test_ruger_HTI_ursenbach_values():
+    err = 0.05
+    vp1 = 2260
+    vs1 = 1428
+    p1 = 2600
+    e1 = 0
+    d1 = 0
+    y1 = 0
+
+    vp2 = 2370
+    vs2 = 1360
+    p2 = 2700
+    e2 = 0.05
+    d2 = 0.02
+    y2 = 0.1
+
+    theta = np.array([40, 40, 40, 40, 1, 1, 0.8], dtype=float)
+    phi = np.array([90, 60, 30, 0.00000001, 60, 30, 30], dtype=float)
+    exp = np.array([0.065, 0.072, 0.087, 0.096, 0.066, 0.066, 0.066], dtype=float)
+
+    for ind, phiv in enumerate(phi):
+        Rpp = rppy.reflectivity.ruger_hti(vp1, vs1, p1, e1, d1, y1,
+                                          vp2, vs2, p2, e2, d2, y2,
+                                          theta[ind], phi[ind])
+        assert np.abs(Rpp - exp[ind])/exp[ind] < err
+
+
 def test_exact_orth_against_crewes():
     err = 0.05
     vp1 = 3000
