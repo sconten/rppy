@@ -153,3 +153,146 @@ def voight_reuss_hill(M, f):
     r = 1/np.sum(f/M)
     h = (v + r) / 2.
     return(v, r, h)
+
+
+def hudson():
+    """
+    Hudson's model for cracked media, based on a scattering-theory analysis of
+    the mean wavefield in an elastic solid with thin, p[enny-shaped ellipsoidal
+    cracks or inclusions (Hudson, 1980)
+    """
+
+    q = 15*(l**2)/(u**2) + 28*(l/u) + 28
+
+    U1 = (16*(l + 2*u))/(3*(3*l + 4*u))
+    U3 = (4*(l + 2*u))/(3*(l + u))
+
+    C1[0][0] = -l**2/u*e*U3
+    C1[0][2] = l(l + 2*u) / u*e*U3
+    C1[2][2] = (l + 2*u)**2 / u*e*U3
+    C1[3][3] = -u*e*U1
+    C1[5][5] = 0
+
+    C2[0][0] = q/15*l**2/(l+2*u)*(e*U3)**2
+    C2[0][2] = q/15*l*(e*U3)**2
+    C2[2][2] = q/15*(l+2*u)*(e*U3)**2
+    C2[3][3] = 2/15*u*(3*l+8*u)/(l+2*u)*(e*U1)**2
+    C2[5][5] = 0
+    Ceff = C0 + C1 + C2
+
+
+def han(phi, C):
+    """
+    Han [1986] model for water-saturated sandstones at 40 MPa
+    """
+
+    Vp = 5.59 - 6.93*phi - 2.13*C
+    Vs = 3.52 - 4.91*phi - 1.89*C
+
+    return(Vp, Vs)
+
+
+def hertz_mindlin(u, v, P, phi, n=None):
+    """
+    Elastic moduli of an elastic sphere pack subject to confining pressure
+    given by the Hertz-Mindlin [Mindlin, 1949] theory.
+
+    If the coordination number n is not given, the function uses the empirical
+    dependency of n on porosity shown by Murphy [1982]
+    """
+
+    if not n:
+        n = 20 - 34*phi + 14*phi**2
+
+    Khm = ((n**2*(1-phi)**2*u**2*P) / (18*np.pi**2*(1-v)**2))**(1/3)
+    uhm = ((5-4*v)/(10-5*v)) * ((3*n**2*(1-phi)**2*u**2*P) /
+                                (2*np.pi**2*(1-v)**2))**(1/3)
+
+    return(Khm, uhm)
+
+
+def cemented_sand(u, v, p, uc, vc, pc, phi, phi0=0.36, C=9, style='contact'):
+    """
+    Bulk and shear moduli of dry sand in which dement is deposity at grain
+    contacts. The cement is elastic, and may differ from that of the spherical
+    pack.
+
+    This may also referred to as the Dvorkin-Nur cement model
+    [Dvorkin and Nur, 1996]
+
+    style = 'contact' - All cement at grain contacts (default)
+    style = 'constant' - Cement deposited evenly on grain surface
+
+    If the critical porosity os not given, the functions uses 0.36
+
+    If the coordination number n is not given, the function uses the empirical
+    dependency of n on porosity shown by Murphy [1982]
+    """
+    import rppy.moduli as rpmod
+
+    if not C:
+        C = 20 - 34*phi + 14*phi**2
+
+    if style == 'contact':
+        a = 2*((phi0 - phi) / (3*C*(1 - phi0)))**0.25
+    elif style == 'constant':
+        a = ((2*(phi0 - phi)) / (3*(1 - phi0)))**0.5
+    else:
+        raise ValueError('You must specify either contact or constant cement.')
+
+    Vpc = rpmod.Vp(pc, u=uc, v=vc)
+    Vsc = rpmod.Vs(pc, u=uc, v=vc)
+
+    Ln = (2*uc*(1 - v)*(1 - vc)) / (np.pi*u*(1 - 2*vc))
+    Lt = uc / (np.pi*u)
+
+    An = -0.024153*Ln**(-1.3646)
+    Bn = 0.20405*Ln**(-0.89008)
+    Cn = 0.00024649*Ln**(-1.9864)
+    Sn = An*a**2 + Bn*a + Cn
+
+    At = -10**(-2)*(2.26*v**2 + 2.07*v + 2.3)*Lt**(0.079*v**2 + 0.1754*v - 1.342)
+    Bt = (0.0573*v**2 + 0.0937*v + 0.202)*Lt**(0.0274*v**2 + 0.0529*v - 0.8765)
+    Ct = 10**(-4)*(9.654*v**2 + 4.945*v + 3.1)*Lt**(0.01867*v**2 + 0.4011*v - 1.8186)
+    St = At*a**2 + Bt*a + Ct
+
+    Mc = pc*Vpc**2
+    uc = pc*Vsc**2
+
+    Keff = (1/6)*C*(1 - phi0)*Mc*Sn
+    ueff = (3/5)*Keff + (3/20)*C*(1 - phi0)*uc*St
+
+    return(Keff, ueff)
+
+
+def soft_sand(Kg, ug, phi, phi_0=0.36, C=None, P=0.4):
+    """
+    The soft-sand (or uncemented-sand, or friable-sand) model calculates the
+    bulk and shear moduli of dry sand in which cement is deposited away from
+    grain contacts. The framework is a dense random pack of identical spherical
+    grains, with critical porosity ~0.36 and average coordination number
+    (contacts per grain) C ~ 5-9.
+
+    Hertz-Mindlin theory gives the effective bulk and shear moduli of the pack
+    at this porosity, and a heuristic modified Hashin-Shtrikman lower bound is
+    used to interpolate at lower porosities.
+    """
+    from rppy.moduli import poissons
+
+    # Moduli at critical porosity
+    vg = poissons(K=Kg, u=ug)
+    Khm, uhm = hertz_mindlin(ug, vg, P, phi_0)
+
+    # Moduli at sub-critical porosity.
+    A = (phi/phi_0) / (Khm + 4/3*uhm)
+    B = (1 - phi/phi_0) / (Kg + 4/3*uhm)
+    C = 4/3*uhm
+
+    D = (phi/phi_0) / (uhm + (uhm/6) * ((9*Khm + 8*uhm) / (Khm + 2*uhm)))
+    E = (1 - phi/phi_0) / (ug + (uhm/6) * ((9*Khm + 8*uhm) / (Khm + 2*uhm)))
+    F = (uhm/6) * ((9*Khm + 8*uhm) / (Khm + 2*uhm))
+
+    Keff = (A + B)**-1 - C
+    ueff = (D + E)**-1 - F
+
+    return(Keff, ueff)
