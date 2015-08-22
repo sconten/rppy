@@ -200,10 +200,8 @@ def snell(vp1, vp2, vs1, vs2, theta1):
 
     # P refraction below first critical angle
     theta2 = np.arcsin(p*vp2)
-    #theta2[np.where(theta2 > theta_crit_1)] = None
 
     # S refraction below second critical angle
-    #thetas2[np.where(theta2 < theta_crit_2)] = np.arcsin(p[np.where(theta2 < theta_crit_2)]*vs2)
     thetas2 = np.arcsin(p*vs2)
 
     return(theta2, thetas1, thetas2, p)

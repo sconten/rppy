@@ -263,3 +263,36 @@ def cemented_sand(u, v, p, uc, vc, pc, phi, phi0=0.36, C=9, style='contact'):
     ueff = (3/5)*Keff + (3/20)*C*(1 - phi0)*uc*St
 
     return(Keff, ueff)
+
+
+def soft_sand(Kg, ug, phi, phi_0=0.36, C=None, P=0.4):
+    """
+    The soft-sand (or uncemented-sand, or friable-sand) model calculates the
+    bulk and shear moduli of dry sand in which cement is deposited away from
+    grain contacts. The framework is a dense random pack of identical spherical
+    grains, with critical porosity ~0.36 and average coordination number
+    (contacts per grain) C ~ 5-9.
+
+    Hertz-Mindlin theory gives the effective bulk and shear moduli of the pack
+    at this porosity, and a heuristic modified Hashin-Shtrikman lower bound is
+    used to interpolate at lower porosities.
+    """
+    from rppy.moduli import poissons
+
+    # Moduli at critical porosity
+    vg = poissons(K=Kg, u=ug)
+    Khm, uhm = hertz_mindlin(ug, vg, P, phi_0)
+
+    # Moduli at sub-critical porosity.
+    A = (phi/phi_0) / (Khm + 4/3*uhm)
+    B = (1 - phi/phi_0) / (Kg + 4/3*uhm)
+    C = 4/3*uhm
+
+    D = (phi/phi_0) / (uhm + (uhm/6) * ((9*Khm + 8*uhm) / (Khm + 2*uhm)))
+    E = (1 - phi/phi_0) / (ug + (uhm/6) * ((9*Khm + 8*uhm) / (Khm + 2*uhm)))
+    F = (uhm/6) * ((9*Khm + 8*uhm) / (Khm + 2*uhm))
+
+    Keff = (A + B)**-1 - C
+    ueff = (D + E)**-1 - F
+
+    return(Keff, ueff)
