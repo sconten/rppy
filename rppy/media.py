@@ -265,7 +265,7 @@ def cemented_sand(u, v, p, uc, vc, pc, phi, phi0=0.36, C=9, style='contact'):
     return(Keff, ueff)
 
 
-def soft_sand(Kg, ug, phi, phi_0=0.36, C=None, P=0.4):
+def soft_sand(Kg, ug, phi, phi_0=0.36, C=None, P=0.4, n=9):
     """
     The soft-sand (or uncemented-sand, or friable-sand) model calculates the
     bulk and shear moduli of dry sand in which cement is deposited away from
@@ -279,9 +279,12 @@ def soft_sand(Kg, ug, phi, phi_0=0.36, C=None, P=0.4):
     """
     from rppy.moduli import poissons
 
+    if not n:
+        n = 20 - 34*phi + 14*phi**2
+
     # Moduli at critical porosity
     vg = poissons(K=Kg, u=ug)
-    Khm, uhm = hertz_mindlin(ug, vg, P, phi_0)
+    Khm, uhm = hertz_mindlin(ug, vg, P, phi_0, n)
 
     # Moduli at sub-critical porosity.
     A = (phi/phi_0) / (Khm + 4/3*uhm)

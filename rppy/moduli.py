@@ -42,19 +42,19 @@ def youngs(v=None, u=None, K=None, L=None, Vp=None, Vs=None, rho=None):
     :param Vs: Shear velocity (combine with Vp and rho)
     :param rho: Density (combine with Vp and Vs)
     """
-    if v and u:
+    if v is not None and u is not None:
         E = 2*u*(1+v)
-    elif v and K:
+    elif v is not None and K is not None:
         E = 3*K*(1-2*v)
-    elif v and L:
+    elif v is not None and L is not None:
         E = (L*(1+v)*(1-2*v))/(v)
-    elif u and K:
+    elif u is not None and K is not None:
         E = (9*K*u)/(3*K+u)
-    elif u and L:
+    elif u is not None and L is not None:
         E = u*(3*L+2*u)/(L+u)
-    elif K and L:
+    elif K is not None and L is not None:
         E = 9*K*(K-L)/(3*K-L)
-    elif Vp and Vs and rho:
+    elif Vp is not None and Vs is not None and rho is not None:
         E = rho*Vs**2*(3*Vp**2-4*Vs**2)/(Vp**2-Vs**2)
     else:
         E = None
@@ -73,20 +73,20 @@ def poissons(E=None, u=None, K=None, L=None, Vp=None, Vs=None, rho=None):
     :param Vs: Shear velocity (combine with Vp and rho)
     :param rho: Density (combine with Vp and Vs)
     """
-    if E and u:
+    if E is not None and u is not None:
         v = (E-2*u)/(2*u)
-    elif E and K:
+    elif E is not None and K is not None:
         v = (3*K - E)/(6*K)
-    elif E and L:
+    elif E is not None and L is not None:
         R = np.sqrt(E**2 + 9*L**2 + 2*E*L)
         v = (2*L)/(E+L+R)
-    elif u and K:
+    elif u is not None and K is not None:
         v = (3*K-2*u)/(6*K + 2*u)
-    elif u and L:
+    elif u is not None and L is not None:
         v = L/(2*(L+u))
-    elif K and L:
+    elif K is not None and L is not None:
         v = L/(3*K-L)
-    elif Vp and Vs and rho:
+    elif Vp is not None and Vs is not None and rho is not None:
         v = (Vp**2 - 2*Vs**2)/(2*(Vp**2-Vs**2))
     else:
         v = None
@@ -105,20 +105,20 @@ def shear(E=None, v=None, K=None, L=None, Vp=None, Vs=None, rho=None):
     :param Vs: Shear velocity (combine with Vp and rho)
     :param rho: Density (combine with Vp and Vs)
     """
-    if E and v:
+    if E is not None and v is not None:
         u = E/(2*(1+v))
-    elif E and K:
+    elif E is not None and K is not None:
         u = 3*K*E/(9*K-E)
-    elif E and L:
+    elif E is not None and L is not None:
         R = np.sqrt(E**2 + 9*L**2 + 2*E*L)
         u = (E-3*L+R)/4
-    elif v and K:
+    elif v is not None and K is not None:
         u = 3*K*(1-2*v)/(2*(1+v))
-    elif v and L:
+    elif v is not None and L is not None:
         u = L*(1-2*v)/(2*v)
-    elif K and L:
+    elif K is not None and L is not None:
         u = (3/2)*(K-L)
-    elif Vp and Vs and rho:
+    elif Vp is not None and Vs is not None and rho is not None:
         u = rho*Vs**2
     else:
         u = None
@@ -137,20 +137,20 @@ def bulk(E=None, v=None, u=None, L=None, Vp=None, Vs=None, rho=None):
     :param Vs: Shear velocity (combine with Vp and rho)
     :param rho: Density (combine with Vp and Vs)
     """
-    if E and v:
+    if E is not None and v is not None:
         K = E/(3*(1-2*v))
-    elif E and u:
+    elif E is not None and u is not None:
         K = E*u/(3*(3*u-E))
-    elif E and L:
+    elif E is not None and L is not None:
         R = np.sqrt(E**2 + 9*L**2 + 2*E*L)
         K = (E+3*L+R)/6
-    elif v and u:
+    elif v is not None and u is not None:
         K = 2*u*(1+v)/(3*(1-2*v))
-    elif v and L:
+    elif v is not None and L is not None:
         K = L*(1+v)/(3*v)
-    elif u and L:
+    elif u is not None and L is not None:
         K = (3*L+2*u)/3
-    elif Vp and Vs and rho:
+    elif Vp is not None and Vs is not None and rho is not None:
         K = rho*(Vp**2 - 4*Vs**2/3)
     else:
         K = None
@@ -169,19 +169,19 @@ def lame(E=None, v=None, u=None, K=None, Vp=None, Vs=None, rho=None):
     :param Vs: Shear velocity (combine with Vp and rho)
     :param rho: Density (combine with Vp and Vs)
     """
-    if E and v:
+    if E is not None and v is not None:
         L = E*v/((1+v)*(1-2*v))
-    elif E and u:
+    elif E is not None and u is not None:
         L = u*(E - 2*u)/(3*u - E)
-    elif E and K:
+    elif E is not None and K is not None:
         L = 3*K*(3*K-E)/(9*K-E)
-    elif v and u:
+    elif v is not None and u is not None:
         L = 2*u*v/(1-2*v)
-    elif v and K:
+    elif v is not None and K is not None:
         L = 3*K*v/(1+v)
-    elif u and K:
+    elif u is not None and K is not None:
         L = (3*K-2*u)/3
-    elif Vp and Vs and rho:
+    elif Vp is not None and Vs is not None and rho is not None:
         L = rho*(Vp**2 - 2*Vs**2)
     else:
         L = None
@@ -199,36 +199,36 @@ def Vp(rho, E=None, v=None, u=None, K=None, L=None):
     :param L: First Lame parameter (combine with E, v, or u)
     :param rho: Density
     """
-    if E and v:
+    if E is not None and v is not None:
         u = shear(E=E, v=v)
         K = bulk(E=E, v=v)
         Vp = np.sqrt((K + 4/3*u)/rho)
-    elif E and u:
+    elif E is not None and u is not None:
         K = bulk(E=E, u=u)
         Vp = np.sqrt((K + 4/3*u)/rho)
-    elif E and K:
+    elif E is not None and K is not None:
         u = shear(E=E, K=K)
         Vp = np.sqrt((K + 4/3*u)/rho)
-    elif E and L:
+    elif E is not None and L is not None:
         K = bulk(E=E, L=L)
         u = shear(E=E, L=L)
         Vp = np.sqrt((K + 4/3*u)/rho)
-    elif v and u:
+    elif v is not None and u is not None:
         K = bulk(v=v, u=u)
         Vp = np.sqrt((K + 4/3*u)/rho)
-    elif v and K:
+    elif v is not None and K is not None:
         u = shear(v=v, K=K)
         Vp = np.sqrt((K + 4/3*u)/rho)
-    elif v and L:
+    elif v is not None and L is not None:
         K = bulk(v=v, L=L)
         u = shear(v=v, L=L)
         Vp = np.sqrt((K + 4/3*u)/rho)
-    elif u and K:
+    elif u is not None and K is not None:
         Vp = np.sqrt((K + 4/3*u)/rho)
-    elif u and L:
+    elif u is not None and L is not None:
         K = bulk(u=u, L=L)
         Vp = np.sqrt((K + 4/3*u)/rho)
-    elif K and L:
+    elif K is not None and L is not None:
         u = shear(K=K, L=L)
         Vp = np.sqrt((K + 4/3*u)/rho)
     else:
@@ -247,24 +247,24 @@ def Vs(rho, E=None, v=None, u=None, K=None, L=None):
     :param L: First Lame parameter (combine with E, v, or u)
     :param rho: Density
     """
-    if u:
+    if u is not None:
         Vs = np.sqrt(u/rho)
-    elif E and v:
+    elif E is not None and v is not None:
         u = shear(E=E, v=v)
         Vs = np.sqrt(u/rho)
-    elif E and K:
+    elif E is not None and K is not None:
         u = shear(E=E, K=K)
         Vs = np.sqrt(u/rho)
-    elif E and L:
+    elif E is not None and L is not None:
         u = shear(E=E, L=L)
         Vs = np.sqrt(u/rho)
-    elif v and K:
+    elif v is not None and K is not None:
         u = shear(v=v, K=K)
         Vs = np.sqrt(u/rho)
-    elif v and L:
+    elif v is not None and L is not None:
         u = shear(v=v, L=L)
         Vs = np.sqrt(u/rho)
-    elif K and L:
+    elif K is not None and L is not None:
         u = shear(K=K, L=L)
         Vs = np.sqrt(u/rho)
     else:
