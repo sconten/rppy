@@ -30,95 +30,91 @@
 import numpy as np
 
 
-def Rd0(rho1, V1, rho2, V2):
+def synthetic_aki_richards(V, p, d):
     """
-    Normal incidence, single-interface downward-propagating reflection matrix
-    """
-    Rd0 = (rho1*V1 - rho2*V2) / (rho1*V1 + rho2*V2)
+    Compute synthetic for a layered medium using the propagator matrix
+    method of Aki and Richards (1980) and Claerbout (1985).
 
-    return(Rd0)
-
-
-def Tu0(rho1, V1, rho2, V2):
-    """
-    Normal incidence, single-interface upward-propagating transmission matrix
-    """
-    Tu0 = (2*np.sqrt(rho1*V1*rho2*V2)) / (rho1*V1 + rho2*V2)
-
-    return(Tu0)
-
-
-def Ed0(w, dk, Vp2, Vs2, theta2, phi2):
-    """
-    Normal incidence, singler-interface phase shift operator
-    """
-    Ed0 = np.zeros(shape=(2, 2))
-    Ed0[0][0] = np.exp(i*w*dk*np.cos(theta2)/Vp2)
-    Ed0[0][1] = 0
-    Ed0[1][0] = 0
-    Ed0[1][1] = np.exp(i*w*dk*np.cos(phi2)/Vs2)
-
-    return(Ed0)
-
-
-def Rd(PP_du, SP_du, PS_du, SS_du, Vp1, Vs1, theta1, phi1):
-    """
-    Single interface donward-propagating reflection matrix
-    """
-    Rd = np.zeros(shape=(2, 2))
-    Rd[0][0] = PP_du
-    Rd[0][1] = SP_du*np.sqrt((Vp1*np.cos(theta1) / Vs1*np.cos(phi1)))
-    Rd[1][0] = PS_du*np.sqrt((Vs1*np.cos(phi1) / Vp1*np.cos(theta1)))
-    Rd[1][1] = SS_du
-
-    return(Rd)
-
-
-def Td(PP_dd, SP_dd, PS_dd, SS_dd, rho1, Vp1, Vs1, rho2, Vp2, Vs2, theta1, phi1, theta2, phi2):
-    """
-    Single interface downward-propagating transmission matrix
-    """
-    Td = np.zeros(shape=(2, 2))
-    Td[0][0] = PP_dd*np.sqrt((rho2*Vp2*np.cos(theta2)) / (rho1*Vp1*np.cos(theta1)))
-    Td[0][1] = SP_dd*np.sqrt((rho2*Vp2*np.cos(theta2)) / (rho1*Vs1*np.cos(phi1)))
-    Td[1][0] = PS_dd*np.sqrt((rho2*Vs2*np.cos(phi2)) / (rho1*Vp1*np.cos(theta1)))
-    Td[1][1] = SS_dd*np.sqrt((rho2*Vs2*np.cos(phi2)) / (rho1*Vs1*np.cos(phi1)))
-
-    return(Td)
-
-
-def Ru(PP_ud, SP_ud, PS_ud, SS_ud, Vp2, Vs2, theta2, phi2):
-    """
-    Single interface upward-propagating reflection matrix
-    """
-    Ru = np.zeros(shape=(2, 2))
-    Ru[0][0] = PP_ud
-    Ru[0][1] = SP_ud*np.sqrt((Vp2*np.cos(theta2)) / (Vs2*np.cos(phi2)))
-    Ru[1][0] = PS_ud*np.sqrt((Vs2*np.cos(phi2)) / (Vp2*np.cos(theta2)))
-    Ru[1][1] = SS_ud
-
-    return(Ru)
-
-
-def Tu(PP_uu, SP_uu, PS_uu, SS_uu, rho1, Vp1, Vs1, rho2, Vp2, Vs2, theta1, phi1, theta2, phi2):
-    """
-    Single interface downward-propagating transmission matrix
-    """
-    Tu = np.zeros(shape=(2, 2))
-    Tu[0][0] = PP_uu*np.sqrt((rho1*Vp1*np.cos(theta1)) / (rho2*Vp2*np.cos(theta2)))
-    Tu[0][1] = SP_uu*np.sqrt((rho1*Vp1*np.cos(theta1)) / (rho2*Vs2*np.cos(phi2)))
-    Tu[1][0] = PS_uu*np.sqrt((rho1*Vs1*np.cos(phi1)) / (rho2*Vp2*np.cos(theta2)))
-    Tu[1][1] = SS_uu*np.sqrt((rho1*Vs1*np.cos(phi1)) / (rho2*Vs2*np.cos(phi2)))
-
-    return(Tu)
-
-
-def full_waveform_synthetic():
-    """
-    Compute synthetic for a layerted medium using the propagator matrix
-    method of Aki and Richard (1980) and Claerbout (1985).
-    
     The synthetic seismogram is computed as a product of propagator matrices,
     one for each layer in the stack. The calculation is done in the frequency
     domain, and includes the effect of multiples.
-    ""
+
+    DOESN'T ACTUALLY WORK YET. NEEDS COMPLETION
+    """
+    for w in freqs:
+        S1 =
+        W1 =
+        for n in xrange(1, numlayer):
+            S = S * S1 * A(n, w)
+            W = W * W1 * A(n, w)
+
+    s = np.fft.ifft(S)
+    w = np.fft.ifft(W)
+
+
+def A(n, w, d, V, p):
+    """
+    Compute the "layer matrix" of Aki and Richards (1980) and Claerbout (1985).
+    Internal function for use in 'synthetic_aki_richards'
+    """
+    wdV = w*d/V
+    A = np.zeros(shape=(2, 2))
+    A = [[np.cos(wdV), j*p*V*np.sin(wdV)],
+         [(j / (p*V))*np.sin(wdV), np.cos(wdV)]]
+
+
+def synthetic_kennett():
+    """
+    Compute synthetic for a layered medium using the invariant imbedding method
+    of Kennett (1974, 1983).
+    """
+
+    M = np.zeros(shape=(4, 4))
+    N = np.zeros(shape=(4, 4))
+
+    M = [[-np.sin(theta[k-1]), -np.cos(phi[k-1]), np.sin(theta[k]), np.cos(phi[k])],
+         [np.cos(theta[k-1]), -np.sin(phi[k-1]), np.cos(theta[k]), -np.sin(phi[k])],
+         [2*Is[k-1]*np.sin(phi[k-1])*np.cos(theta[k-1]),
+          Is[k-1](1 - 2*np.sin(phi[k-1])^2),
+          2*Is[k]*np.sin(phi[k])*np.cos(theta[k]),
+          Is[k]*(1 - 2*np.sin(phi[k])^2)],
+         [-Ip[k-1]*(1 - 2*np.sin(phi[k-1])^2),
+          Is[k-1]*np.sin(2*phi[k-1]),
+          Ip[k]*(1 - 2*np.sin(phi[k])^2),
+          -Is[k]*np.sin(2*phi[k])]]
+
+
+def RDhat(k):
+    RDhat = RD(k) + TU(k)*ED(k)*RDhat(k+1)*ED(k)*np.invert(I - RU(k)*ED(k)*RDhat(k+1)*ED(k))*TD(k)
+
+
+def RD(k):
+    RD = np.zeros(shape=(2, 2))
+    RD[1][1] = PPdu
+    RD[1][2] = SPdu*np.sqrt(((Vp[k-1]*np.cos(theta[k-1]))/(Vs[k-1]*np.cos(phi[k-1]))))
+    RD[2][1] = PSdu*np.sqrt((Vs[k-1]*np.cos(phi[k-1]))/(Vp[k-1]*np.cos(theta[k-1])))
+    RD[2][2] = SSdu
+
+
+def TD(k):
+    TD = np.zeros(shape=(2, 2))
+    TD[1][1] = PPdd*np.sqrt()
+    TD[1][2] = SPdd*np.sqrt()
+    TD[2][1] = PSdd*np.sqrt()
+    TD[2][2] = SSdd*np.sqrt()
+
+
+def RU(k):
+    RU = np.zeros(shape=(2, 2))
+    RU[1][1] = PPud
+    RU[1][2] = SPud*np.sqrt()
+    RU[2][1] = PSud*np.sqrt()
+    RU[2][2] = SSud
+
+
+def TU(k):
+    TU = np.zeros(shape=(2, 2))
+    TU[1][1] = PPuu*np.sqrt()
+    TU[1][2] = SPuu*np.sqrt()
+    TU[2][1] = PSuu*np.sqrt()
+    TU[2][2] = SSuu*np.sqrt()
