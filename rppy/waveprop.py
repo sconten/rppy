@@ -72,16 +72,41 @@ def synthetic_kennett():
     M = np.zeros(shape=(4, 4))
     N = np.zeros(shape=(4, 4))
 
-    M = [[-np.sin(theta[k-1]), -np.cos(phi[k-1]), np.sin(theta[k]), np.cos(phi[k])],
-         [np.cos(theta[k-1]), -np.sin(phi[k-1]), np.cos(theta[k]), -np.sin(phi[k])],
-         [2*Is[k-1]*np.sin(phi[k-1])*np.cos(theta[k-1]),
-          Is[k-1](1 - 2*np.sin(phi[k-1])^2),
-          2*Is[k]*np.sin(phi[k])*np.cos(theta[k]),
-          Is[k]*(1 - 2*np.sin(phi[k])^2)],
-         [-Ip[k-1]*(1 - 2*np.sin(phi[k-1])^2),
-          Is[k-1]*np.sin(2*phi[k-1]),
-          Ip[k]*(1 - 2*np.sin(phi[k])^2),
-          -Is[k]*np.sin(2*phi[k])]]
+    M[0][0] = -np.sin(theta[k-1])
+    M[0][1] = -np.cos(phi[k-1])
+    M[0][2] = np.sin(theta[k])
+    M[0][3] = np.cos(phi[k])],
+    M[1][0] = np.cos(theta[k-1])
+    M[1][1] = -np.sin(phi[k-1])
+    M[1][2] = np.cos(theta[k])
+    M[1][3] = -np.sin(phi[k])
+    M[2][0] = 2*Is[k-1]*np.sin(phi[k-1])*np.cos(theta[k-1])
+    M[2][1] = Is[k-1](1 - 2*np.sin(phi[k-1])^2)
+    M[2][2] = 2*Is[k]*np.sin(phi[k])*np.cos(theta[k])
+    M[2][3] = Is[k]*(1 - 2*np.sin(phi[k])^2)
+    M[3][0] = -Ip[k-1]*(1 - 2*np.sin(phi[k-1])^2)
+    M[3][1] = Is[k-1]*np.sin(2*phi[k-1])
+    M[3][2] = Ip[k]*(1 - 2*np.sin(phi[k])^2)
+    M[3][3] = -Is[k]*np.sin(2*phi[k])]]
+
+    N[0][0] = -np.sin(theta[k-1])
+    N[0][1] = np.cos(phi[k-1])
+    N[0][2] = -np.sin(theta[k])
+    N[0][3] = -np.cos(phi[k])
+    N[1][0] = -np.cos(theta[k-1])
+    N[1][1] = -np.sin(phi[k-1])
+    N[1][2] = np.cos(theta[k])
+    N[1][3] = -np.sin(phi[k])
+    N[2][0] = 2*Is[k-1]*np.sin(phi[k-1])*np.cos(theta[k-1])
+    N[2][1] = Is[k-1]*(1 - 2*np.sin(phi[k-1])^2)
+    N[2][2] = 2*Is[k]*np.sin(phi[k])*np.cos(theta[k])
+    N[2][3] = Is[k]*(1 - 2*np.sin(phi[k])^2)
+    N[3][0] = Ip[k-1]*(1 - 2*np.sin(phi[k-1])^2)
+    N[3][1] = -Is[k-1]*np.sin(2*phi[k-1])
+    N[3][2] = -Ip[k]*(1 - 2*np.sin(phi[k])^2)
+    N[3][3] = Is[k]*np.sin(2*phi[k])
+
+    iMN = np.linalg.inv(M)*N
 
 
 def RDhat(k):
@@ -90,31 +115,31 @@ def RDhat(k):
 
 def RD(k):
     RD = np.zeros(shape=(2, 2))
-    RD[1][1] = PPdu
-    RD[1][2] = SPdu*np.sqrt(((Vp[k-1]*np.cos(theta[k-1]))/(Vs[k-1]*np.cos(phi[k-1]))))
-    RD[2][1] = PSdu*np.sqrt((Vs[k-1]*np.cos(phi[k-1]))/(Vp[k-1]*np.cos(theta[k-1])))
-    RD[2][2] = SSdu
+    RD[0][0] = PPdu
+    RD[0][1] = SPdu*np.sqrt(((Vp[k-1]*np.cos(theta[k-1]))/(Vs[k-1]*np.cos(phi[k-1]))))
+    RD[1][0] = PSdu*np.sqrt((Vs[k-1]*np.cos(phi[k-1]))/(Vp[k-1]*np.cos(theta[k-1])))
+    RD[1][1] = SSdu
 
 
 def TD(k):
     TD = np.zeros(shape=(2, 2))
-    TD[1][1] = PPdd*np.sqrt()
-    TD[1][2] = SPdd*np.sqrt()
-    TD[2][1] = PSdd*np.sqrt()
-    TD[2][2] = SSdd*np.sqrt()
+    TD[0][0] = PPdd*np.sqrt()
+    TD[0][1] = SPdd*np.sqrt()
+    TD[1][0] = PSdd*np.sqrt()
+    TD[1][1] = SSdd*np.sqrt()
 
 
 def RU(k):
     RU = np.zeros(shape=(2, 2))
-    RU[1][1] = PPud
-    RU[1][2] = SPud*np.sqrt()
-    RU[2][1] = PSud*np.sqrt()
-    RU[2][2] = SSud
+    RU[0][0] = PPud
+    RU[0][1] = SPud*np.sqrt()
+    RU[1][0] = PSud*np.sqrt()
+    RU[1][1] = SSud
 
 
 def TU(k):
     TU = np.zeros(shape=(2, 2))
-    TU[1][1] = PPuu*np.sqrt()
-    TU[1][2] = SPuu*np.sqrt()
-    TU[2][1] = PSuu*np.sqrt()
-    TU[2][2] = SSuu*np.sqrt()
+    TU[0][0] = PPuu*np.sqrt()
+    TU[0][1] = SPuu*np.sqrt()
+    TU[1][0] = PSuu*np.sqrt()
+    TU[1][1] = SSuu*np.sqrt()
