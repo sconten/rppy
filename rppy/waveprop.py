@@ -36,8 +36,7 @@ def synthetic_aki_richards(V, p, d):
     method of Aki and Richards (1980) and Claerbout (1985).
 
     The synthetic seismogram is computed as a product of propagator matrices,
-    one for each layer in the stack. The calculation is done in the frequency
-    domain, and includes the effect of multiples.
+    one for each layer in the stack.
 
     DOESN'T ACTUALLY WORK YET. NEEDS COMPLETION
     """
@@ -115,18 +114,18 @@ def RDhat(k):
 
 def RD(k):
     RD = np.zeros(shape=(2, 2))
-    RD[0][0] = PPdu
-    RD[0][1] = SPdu*np.sqrt(((Vp[k-1]*np.cos(theta[k-1]))/(Vs[k-1]*np.cos(phi[k-1]))))
-    RD[1][0] = PSdu*np.sqrt((Vs[k-1]*np.cos(phi[k-1]))/(Vp[k-1]*np.cos(theta[k-1])))
-    RD[1][1] = SSdu
+    RD[0][0] = iMN[0][0]
+    RD[0][1] = iMN[0][1]*np.sqrt(((Vp[k-1]*np.cos(theta[k-1]))/(Vs[k-1]*np.cos(phi[k-1]))))
+    RD[1][0] = iMN[1][0]*np.sqrt((Vs[k-1]*np.cos(phi[k-1]))/(Vp[k-1]*np.cos(theta[k-1])))
+    RD[1][1] = iMN[1][1]
 
 
 def TD(k):
     TD = np.zeros(shape=(2, 2))
-    TD[0][0] = PPdd*np.sqrt()
-    TD[0][1] = SPdd*np.sqrt()
-    TD[1][0] = PSdd*np.sqrt()
-    TD[1][1] = SSdd*np.sqrt()
+    TD[0][0] = iMN[2][0]*np.sqrt()
+    TD[0][1] = iMN[2][1]*np.sqrt()
+    TD[1][0] = iMN[3][0]*np.sqrt()
+    TD[1][1] = iMN[3][1]*np.sqrt()
 
 
 def RU(k):
