@@ -138,7 +138,7 @@ def RU(k):
 
 def TU(k):
     TU = np.zeros(shape=(2, 2))
-    TU[0][0] = PPuu*np.sqrt()
-    TU[0][1] = SPuu*np.sqrt()
-    TU[1][0] = PSuu*np.sqrt()
-    TU[1][1] = SSuu*np.sqrt()
+    TU[0][0] = iMN[0][2]*np.sqrt((p[k-1]*Vp[k-1]*np.cos(theta[k-1])) / (p[k]*Vp[k]*np.cos(theta[k])))
+    TU[0][1] = iMN[0][3]*np.sqrt((p[k-1]*Vp[k-1]*np.cos(theta[k-1])) / (p[k]*Vs[k]*np.cos(phi[k])))
+    TU[1][0] = iMN[1][2]*np.sqrt((p[k-1]*Vs[k-1]*np.cos(phi[k-1])) / (p[k]*Vp[k]*np.cos(theta[k])))
+    TU[1][1] = iMN[1][3]*np.sqrt((p[k-1]*Vs[k-1]*np.cos(phi[k-1])) / (p[k]*Vs[k]*np.cos(phi[k])))
