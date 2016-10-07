@@ -122,10 +122,10 @@ def RD(k):
 
 def TD(k):
     TD = np.zeros(shape=(2, 2))
-    TD[0][0] = iMN[2][0]*np.sqrt()
-    TD[0][1] = iMN[2][1]*np.sqrt()
-    TD[1][0] = iMN[3][0]*np.sqrt()
-    TD[1][1] = iMN[3][1]*np.sqrt()
+    TD[0][0] = iMN[2][0]*np.sqrt((p[k]*Vp[k]*np.cos(theta[k])) / (p[k-1]*Vp[k-1]*np.cos[k-1]))
+    TD[0][1] = iMN[2][1]*np.sqrt((p[k]*Vp[k]*np.cos(theta[k])) / (p[k-1]*Vs[k-1]*np.cos(phi[k-1])))
+    TD[1][0] = iMN[3][0]*np.sqrt((p[k]*Vs[k]*np.cos(phi[k])) / (p[k-1]*Vp[k-1]*np.cos(theta[k-1])))
+    TD[1][1] = iMN[3][1]*np.sqrt((p[k]*Vs[k]*np.cos(phi[k])) / (p[k-1]*Vs[k-1]*np.cos(phi[k-1])))
 
 
 def RU(k):
