@@ -111,6 +111,14 @@ def synthetic_kennett():
 def RDhat(k):
     RDhat = RD(k) + TU(k)*ED(k)*RDhat(k+1)*ED(k)*np.invert(I - RU(k)*ED(k)*RDhat(k+1)*ED(k))*TD(k)
 
+    return RDhat
+
+
+def TDhat(k):
+    TDhat = TD(k+1)*ED(k)*np.invert(I - RU(k)*ED(k)*RDhat(k+1)*ED(k))*TD(k)
+
+    return TDhat
+
 
 def RD(k):
     RD = np.zeros(shape=(2, 2))
@@ -118,6 +126,8 @@ def RD(k):
     RD[0][1] = iMN[0][1]*np.sqrt(((Vp[k-1]*np.cos(theta[k-1]))/(Vs[k-1]*np.cos(phi[k-1]))))
     RD[1][0] = iMN[1][0]*np.sqrt((Vs[k-1]*np.cos(phi[k-1]))/(Vp[k-1]*np.cos(theta[k-1])))
     RD[1][1] = iMN[1][1]
+
+    return RD
 
 
 def TD(k):
@@ -127,6 +137,8 @@ def TD(k):
     TD[1][0] = iMN[3][0]*np.sqrt((p[k]*Vs[k]*np.cos(phi[k])) / (p[k-1]*Vp[k-1]*np.cos(theta[k-1])))
     TD[1][1] = iMN[3][1]*np.sqrt((p[k]*Vs[k]*np.cos(phi[k])) / (p[k-1]*Vs[k-1]*np.cos(phi[k-1])))
 
+    return TD
+
 
 def RU(k):
     RU = np.zeros(shape=(2, 2))
@@ -135,6 +147,8 @@ def RU(k):
     RU[1][0] = iMN[2][2]*np.sqrt((Vs[k]*np.cos(phi[k])) / (Vp[k]*np.cos(theta[k])))
     RU[1][1] = iMN[3][3]
 
+    return RU
+
 
 def TU(k):
     TU = np.zeros(shape=(2, 2))
@@ -142,3 +156,16 @@ def TU(k):
     TU[0][1] = iMN[0][3]*np.sqrt((p[k-1]*Vp[k-1]*np.cos(theta[k-1])) / (p[k]*Vs[k]*np.cos(phi[k])))
     TU[1][0] = iMN[1][2]*np.sqrt((p[k-1]*Vs[k-1]*np.cos(phi[k-1])) / (p[k]*Vp[k]*np.cos(theta[k])))
     TU[1][1] = iMN[1][3]*np.sqrt((p[k-1]*Vs[k-1]*np.cos(phi[k-1])) / (p[k]*Vs[k]*np.cos(phi[k])))
+
+    return TU
+
+
+def ED(k):
+    ED = np.zeros(shape=(2, 2))
+    ED[0][0] = np.exp(1j*w*d[k]*np.cos(theta[k])/Vp[k])
+    ED[0][1] = 0
+    ED[1][0] = 0
+    ED[1][1] = np.exp(1j*w*d[k]*np.cos(phi[k])/Vs[k])
+
+    return ED
+
