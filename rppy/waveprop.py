@@ -130,10 +130,10 @@ def TD(k):
 
 def RU(k):
     RU = np.zeros(shape=(2, 2))
-    RU[0][0] = PPud
-    RU[0][1] = SPud*np.sqrt()
-    RU[1][0] = PSud*np.sqrt()
-    RU[1][1] = SSud
+    RU[0][0] = iMN[0][2]
+    RU[0][1] = iMN[2][3]*np.sqrt((Vp[k]*np.cos(theta[k])) / (Vs[k]*np.cos(phi[k])))
+    RU[1][0] = iMN[2][2]*np.sqrt((Vs[k]*np.cos(phi[k])) / (Vp[k]*np.cos(theta[k])))
+    RU[1][1] = iMN[3][3]
 
 
 def TU(k):
