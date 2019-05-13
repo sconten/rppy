@@ -72,7 +72,7 @@ def gassmann(K0, Kin, Kfin, Kfout, phi):
     return(Kout)
 
 
-def batzle_wang(P, T, fluid, S=None, G=None, api=None, Rg=None):
+def batzle_wang(P, T, fluid, S=None, G=None, api=None):
     """
     Calculate the elastic properties of reservoir fluids using the
     Batzle & Wang [1992] equations.
@@ -84,7 +84,6 @@ def batzle_wang(P, T, fluid, S=None, G=None, api=None, Rg=None):
     :param G: Gas gravity (gas mode only, ratio of gas density to air density
               at 15.6C and atmospheric pressure)
     :param api: American Petroleum Insitute (API) oil gravity
-    :param Rg: Gas-oil ratio
     """
 
     if fluid == 'brine':
@@ -116,6 +115,7 @@ def batzle_wang(P, T, fluid, S=None, G=None, api=None, Rg=None):
         out = {'rho': rhob, 'Vp': Vb}
 
     elif fluid == 'oil':
+        Rg = 2.03*G*(P*np.exp(0.02878*api - 0.00377*T))**1.205
         rho0 = 141.5 / (api + 131.5)
         B0 = 0.972 + 0.00038*(2.4*Rg*(G/rho0)**0.5 + T + 17.8)**(1.175)
 
