@@ -125,7 +125,8 @@ def batzle_wang(P, T, fluid, S=None, G=None, api=None):
                 1.71e-7*P**3)*(rhog - 1.15)**2 + 3.49e-4*P)
 
         rho = rhop / (0.972 + 3.81e-4*(T + 17.78)**1.175)  # correct for temp
-        Vp = 2096*(rho_r / (2.6 - rho_r))**0.5 - 3.7*T + 4.64*P
+        Vp = 2096*(rho_r / (2.6 - rho_r))**0.5 - 3.7*T + 4.64*P + 0.0115*(
+            4.12*(1.08/rho_r - 1)**0.5 -1)*T*P
 
         out = {'rho': rho, 'Vp': Vp}
 
