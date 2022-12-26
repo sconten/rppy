@@ -1,4 +1,4 @@
-wheel==0.23.0
+wheel==0.38.1
 numpy>=1.9.0
 matplotlib>=1.4.3
 coverage>= 3.7.1
